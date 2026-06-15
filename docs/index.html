@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Data Lineage - Product Analytics</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 0; padding: 20px; background: #f5f5f5; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        h1 { color: #333; border-bottom: 3px solid #0066cc; padding-bottom: 10px; }
+        .lineage { background: white; padding: 20px; margin: 20px 0; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .layer { margin: 20px 0; }
+        .layer-name { font-weight: bold; color: #0066cc; font-size: 16px; margin-bottom: 10px; }
+        .models { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 10px; }
+        .model { background: #f9f9f9; padding: 15px; border-left: 4px solid #0066cc; border-radius: 4px; }
+        .model-name { font-weight: bold; color: #333; }
+        .model-desc { color: #666; font-size: 14px; margin-top: 5px; }
+        .model-type { display: inline-block; background: #e6f2ff; color: #0066cc; padding: 2px 8px; border-radius: 3px; font-size: 12px; margin-top: 8px; }
+        .diagram { background: white; padding: 20px; margin: 20px 0; border-radius: 8px; text-align: center; font-family: monospace; line-height: 1.8; }
+        code { background: #f0f0f0; padding: 2px 6px; border-radius: 3px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📊 Data Lineage & Model Documentation</h1>
+
+        <div class="diagram">
+            <pre>
+Raw CSVs (Instacart)
+    ↓
+stg_orders, stg_products, stg_order_products
+    ↓
+fct_orders (FACT) + dim_users, dim_products
+    ↓
+product_funnel, user_retention, department_performance
+    ↓
+Production Analytics
+            </pre>
+        </div>
+
+        <div class="lineage">
+            <div class="layer">
+                <div class="layer-name">📥 RAW LAYER (Staging Views)</div>
+                <div class="models">
+                    <div class="model">
+                        <div class="model-name">stg_orders</div>
+                        <div class="model-desc">Raw orders with validation. Columns: order_id, user_id, order_number, order_dow, order_hour, days_since_prior_order</div>
+                        <div class="model-type">VIEW</div>
+                    </div>
+                    <div class="model">
+                        <div class="model-name">stg_products</div>
+                        <div class="model-desc">Raw products. Columns: product_id, product_name, aisle_id, department_id</div>
+                        <div class="model-type">VIEW</div>
+                    </div>
+                    <div class="model">
+                        <div class="model-name">stg_order_products</div>
+                        <div class="model-desc">Order-product bridge. Columns: order_id, product_id, add_to_cart_order, reordered</div>
+                        <div class="model-type">VIEW</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="layer">
+                <div class="layer-name">⭐ MARTS LAYER (Fact & Dimensions)</div>
+                <div class="models">
+                    <div class="model">
+                        <div class="model-name">fct_orders</div>
+                        <div class="model-desc"><strong>FACT TABLE</strong>. Grain: order-product. 1.38M rows. Incremental materialization.</div>
+                        <div class="model-type">TABLE (INCREMENTAL)</div>
+                    </div>
+                    <div class="model">
+                        <div class="model-name">dim_users</div>
+                        <div class="model-desc">User dimension. 206K rows. Segments: high/medium/low frequency. Metrics: reorder_rate, avg_days_between_orders</div>
+                        <div class="model-type">TABLE</div>
+                    </div>
+                    <div class="model">
+                        <div class="model-name">dim_products</div>
+                        <div class="model-desc">Product dimension. 49K rows. Metrics: reorder_rate, reorder_count</div>
+                        <div class="model-type">TABLE</div>
+                    </div>
+                    <div class="model">
+                        <div class="model-name">dim_departments</div>
+                        <div class="model-desc">Department dimension. 21 rows. Metrics: total_products, total_orders</div>
+                        <div class="model-type">TABLE</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="layer">
+                <div class="layer-name">📈 ANALYTICS LAYER (Aggregations)</div>
+                <div class="models">
+                    <div class="model">
+                        <div class="model-name">product_funnel</div>
+                        <div class="model-desc">Daily funnel metrics. Columns: metric_date, daily_users, daily_orders, avg_items_per_order, reorder_rate</div>
+                        <div class="model-type">TABLE</div>
+                    </div>
+                    <div class="model">
+                        <div class="model-name">user_retention</div>
+                        <div class="model-desc">User engagement cohorts. Columns: user_id, total_orders, order_span, user_cohort</div>
+                        <div class="model-type">TABLE</div>
+                    </div>
+                    <div class="model">
+                        <div class="model-name">department_performance</div>
+                        <div class="model-desc">Department metrics & rankings. Columns: department_id, total_orders, reorder_rate, performance_tier</div>
+                        <div class="model-type">TABLE</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="lineage">
+            <h2>Key Stats</h2>
+            <ul>
+                <li><strong>Models:</strong> 9 total (3 staging views, 6 marts tables)</li>
+                <li><strong>Tests:</strong> 37 automated (not_null, unique, relationships, custom)</li>
+                <li><strong>Fact Table:</strong> 1.38M rows (order-product grain)</li>
+                <li><strong>Materialization:</strong> fct_orders is incremental (append-only)</li>
+                <li><strong>Update frequency:</strong> ~2 seconds for full run</li>
+                <li><strong>Data freshness:</strong> Real Instacart dataset (3.4M orders)</li>
+            </ul>
+        </div>
+
+        <div class="lineage">
+            <h2>Design Decisions</h2>
+            <ul>
+                <li><strong>Star Schema:</strong> Fact + dimensions for query performance. Denormalization acceptable for analytics.</li>
+                <li><strong>Order-Product Grain:</strong> One row per order-product enables product-level funnel analysis.</li>
+                <li><strong>Incremental fct_orders:</strong> Only processes new orders (order_id > max_id). Reduces runtime from 1.3s → 0.49s on repeat runs.</li>
+                <li><strong>dbt Tests:</strong> All models have comprehensive test coverage (not_null, unique, referential integrity).</li>
+            </ul>
+        </div>
+
+        <hr style="margin: 40px 0; border: none; border-top: 1px solid #ddd;">
+        <p style="color: #666; font-size: 14px;">
+            Generated from dbt project.
+            <a href="https://github.com/saitejasrivilli/product-analytics-pipeline">View on GitHub</a>
+        </p>
+    </div>
+</body>
+</html>

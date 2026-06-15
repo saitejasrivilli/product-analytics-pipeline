@@ -53,83 +53,154 @@ def index():
     <html>
     <head>
         <title>Product Analytics Dashboard</title>
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
         <style>
-            body { font-family: Arial; margin: 20px; background: #f5f5f5; }
-            .container { max-width: 1200px; margin: 0 auto; }
-            h1 { color: #333; }
-            .card { background: white; padding: 20px; margin: 10px 0; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-            table { width: 100%; border-collapse: collapse; }
-            th, td { padding: 10px; text-align: left; border-bottom: 1px solid #ddd; }
-            th { background: #f9f9f9; font-weight: bold; }
-            .metric { font-size: 24px; color: #0066cc; font-weight: bold; }
-            .label { color: #666; }
+            * { margin: 0; padding: 0; box-sizing: border-box; }
+            body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f5f5; }
+            .container { max-width: 1400px; margin: 0 auto; padding: 20px; }
+            h1 { color: #333; margin: 20px 0; font-size: 32px; }
+            .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin: 20px 0; }
+            .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+            .metric-card { text-align: center; }
+            .metric-value { font-size: 32px; font-weight: bold; color: #0066cc; }
+            .metric-label { color: #666; font-size: 14px; margin-top: 5px; }
+            .chart-card { grid-column: span 2; }
+            .insights-list { list-style: none; }
+            .insights-list li { padding: 10px 0; border-bottom: 1px solid #eee; }
+            .insights-list li:before { content: '✓ '; color: #0066cc; font-weight: bold; }
+            table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+            th { background: #f0f0f0; padding: 10px; text-align: left; font-weight: 600; }
+            td { padding: 10px; border-bottom: 1px solid #eee; }
+            tr:hover { background: #f9f9f9; }
         </style>
     </head>
     <body>
         <div class="container">
             <h1>📊 Product Analytics Dashboard</h1>
 
-            <div class="card">
-                <h2>Warehouse Status</h2>
-                <div id="status"></div>
+            <div class="grid">
+                <div class="card metric-card">
+                    <div class="metric-label">Fact Orders</div>
+                    <div class="metric-value" id="fact-rows">-</div>
+                </div>
+                <div class="card metric-card">
+                    <div class="metric-label">Users</div>
+                    <div class="metric-value" id="user-count">-</div>
+                </div>
+                <div class="card metric-card">
+                    <div class="metric-label">Products</div>
+                    <div class="metric-value" id="product-count">-</div>
+                </div>
+                <div class="card metric-card">
+                    <div class="metric-label">Reorder Rate</div>
+                    <div class="metric-value" id="reorder-rate">-</div>
+                </div>
             </div>
 
-            <div class="card">
-                <h2>Daily Metrics by Day of Week</h2>
-                <div id="metrics"></div>
+            <div class="grid">
+                <div class="card chart-card">
+                    <h2>Daily Users by Day of Week</h2>
+                    <canvas id="usersChart"></canvas>
+                </div>
+                <div class="card chart-card">
+                    <h2>Reorder Rate by Day</h2>
+                    <canvas id="reorderChart"></canvas>
+                </div>
             </div>
 
             <div class="card">
                 <h2>Top 10 Most Reordered Products</h2>
-                <div id="products"></div>
+                <table>
+                    <thead>
+                        <tr><th>Product ID</th><th>Times Ordered</th><th>Reorder Rate</th></tr>
+                    </thead>
+                    <tbody id="products-table"></tbody>
+                </table>
             </div>
 
             <div class="card">
                 <h2>Key Insights</h2>
-                <div id="insights"></div>
+                <ul class="insights-list" id="insights"></ul>
             </div>
         </div>
 
         <script>
+            let usersChart, reorderChart;
+
             async function loadData() {
                 try {
                     // Load status
                     const status = await fetch('/api/status').then(r => r.json());
-                    document.getElementById('status').innerHTML = `
-                        <p><span class="label">Fact Orders:</span> <span class="metric">${status.fact_rows.toLocaleString()}</span> rows</p>
-                        <p><span class="label">Users:</span> <span class="metric">${status.user_count.toLocaleString()}</span></p>
-                        <p><span class="label">Products:</span> <span class="metric">${status.product_count.toLocaleString()}</span></p>
-                        <p><span class="label">Reorder Rate:</span> <span class="metric">${status.reorder_rate}%</span></p>
-                    `;
+                    document.getElementById('fact-rows').textContent = status.fact_rows.toLocaleString();
+                    document.getElementById('user-count').textContent = status.user_count.toLocaleString();
+                    document.getElementById('product-count').textContent = status.product_count.toLocaleString();
+                    document.getElementById('reorder-rate').textContent = status.reorder_rate + '%';
 
-                    // Load metrics
+                    // Load metrics and create charts
                     const metrics = await fetch('/api/metrics').then(r => r.json());
-                    let metricsHtml = '<table><tr><th>Day</th><th>Users</th><th>Orders</th><th>Items/Order</th><th>Reorder Rate</th></tr>';
-                    metrics.forEach(row => {
-                        metricsHtml += `<tr><td>${row.day}</td><td>${row.daily_users}</td><td>${row.orders}</td><td>${row.items_per_order}</td><td>${row.reorder_rate}</td></tr>`;
-                    });
-                    metricsHtml += '</table>';
-                    document.getElementById('metrics').innerHTML = metricsHtml;
+                    const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+                    const userCounts = metrics.map(m => m.daily_users);
+                    const reorderRates = metrics.map(m => (m.reorder_rate * 100).toFixed(1));
 
-                    // Load top products
+                    // Users chart
+                    const usersCtx = document.getElementById('usersChart').getContext('2d');
+                    usersChart = new Chart(usersCtx, {
+                        type: 'bar',
+                        data: {
+                            labels: days,
+                            datasets: [{
+                                label: 'Daily Users',
+                                data: userCounts,
+                                backgroundColor: '#0066cc',
+                                borderColor: '#0052a3',
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            plugins: { legend: { display: false } },
+                            scales: { y: { beginAtZero: true } }
+                        }
+                    });
+
+                    // Reorder rate chart
+                    const reorderCtx = document.getElementById('reorderChart').getContext('2d');
+                    reorderChart = new Chart(reorderCtx, {
+                        type: 'line',
+                        data: {
+                            labels: days,
+                            datasets: [{
+                                label: 'Reorder Rate (%)',
+                                data: reorderRates,
+                                borderColor: '#0066cc',
+                                backgroundColor: 'rgba(0, 102, 204, 0.1)',
+                                borderWidth: 2,
+                                fill: true,
+                                tension: 0.4
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            plugins: { legend: { display: false } },
+                            scales: { y: { min: 50, max: 65 } }
+                        }
+                    });
+
+                    // Top products
                     const products = await fetch('/api/top-products').then(r => r.json());
-                    let productsHtml = '<table><tr><th>Product ID</th><th>Times Ordered</th><th>Reorder Rate</th></tr>';
-                    products.forEach(row => {
-                        productsHtml += `<tr><td>${row.product_id}</td><td>${row.times_ordered}</td><td>${row.reorder_rate}</td></tr>`;
+                    let productsHtml = '';
+                    products.forEach(p => {
+                        productsHtml += `<tr><td>${p.product_id}</td><td>${p.times_ordered}</td><td>${(p.reorder_rate * 100).toFixed(0)}%</td></tr>`;
                     });
-                    productsHtml += '</table>';
-                    document.getElementById('products').innerHTML = productsHtml;
+                    document.getElementById('products-table').innerHTML = productsHtml;
 
-                    // Load insights
+                    // Insights
                     const insights = await fetch('/api/insights').then(r => r.json());
-                    document.getElementById('insights').innerHTML = `
-                        <ul>
-                            ${insights.map(i => `<li>${i}</li>`).join('')}
-                        </ul>
-                    `;
+                    document.getElementById('insights').innerHTML = insights.map(i => `<li>${i}</li>`).join('');
+
                 } catch (error) {
-                    console.error('Error loading data:', error);
-                    document.body.innerHTML = '<p>Error loading dashboard. Make sure DuckDB database is available.</p>';
+                    console.error('Error:', error);
+                    document.body.innerHTML = '<p>Error loading dashboard</p>';
                 }
             }
 

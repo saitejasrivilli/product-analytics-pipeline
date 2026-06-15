@@ -4,13 +4,13 @@ Deploy to Render: https://render.com
 """
 
 from flask import Flask, jsonify, render_template_string
-import duckdb
 import json
 
 app = Flask(__name__)
 
-# Connect to DuckDB
-db = duckdb.connect('data/warehouse.duckdb')
+# Load pre-computed data
+with open('dashboards/data.json', 'r') as f:
+    dashboard_data = json.load(f)
 
 @app.route('/')
 def index():
@@ -110,85 +110,22 @@ def index():
 @app.route('/api/status')
 def api_status():
     """Warehouse status metrics"""
-    try:
-        fact_rows = db.execute("SELECT COUNT(*) FROM analytics.fct_orders").fetchall()[0][0]
-        user_count = db.execute("SELECT COUNT(*) FROM analytics.dim_users").fetchall()[0][0]
-        product_count = db.execute("SELECT COUNT(*) FROM analytics.dim_products").fetchall()[0][0]
-        reorder_rate = db.execute("""
-            SELECT ROUND(100.0 * SUM(CASE WHEN reordered = 1 THEN 1 ELSE 0 END) / COUNT(*), 2)
-            FROM analytics.fct_orders
-        """).fetchall()[0][0]
-
-        return jsonify({
-            "fact_rows": fact_rows,
-            "user_count": user_count,
-            "product_count": product_count,
-            "reorder_rate": reorder_rate
-        })
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+    return jsonify(dashboard_data["status"])
 
 @app.route('/api/metrics')
 def api_metrics():
     """Daily metrics by day of week"""
-    try:
-        result = db.execute("""
-            SELECT
-                order_dow as day,
-                COUNT(DISTINCT user_id) as daily_users,
-                COUNT(DISTINCT order_id) as orders,
-                ROUND(COUNT(DISTINCT product_id)::float / COUNT(DISTINCT order_id), 1) as items_per_order,
-                ROUND(SUM(CASE WHEN reordered = 1 THEN 1 ELSE 0 END)::float / COUNT(*), 3) as reorder_rate
-            FROM analytics.fct_orders
-            GROUP BY order_dow
-            ORDER BY order_dow
-        """).fetchall()
-
-        return jsonify([{
-            "day": int(row[0]),
-            "daily_users": int(row[1]),
-            "orders": int(row[2]),
-            "items_per_order": float(row[3]),
-            "reorder_rate": float(row[4])
-        } for row in result])
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+    return jsonify(dashboard_data["metrics"])
 
 @app.route('/api/top-products')
 def api_top_products():
     """Top 10 most reordered products"""
-    try:
-        result = db.execute("""
-            SELECT
-                product_id,
-                COUNT(DISTINCT order_id) as times_ordered,
-                ROUND(SUM(CASE WHEN reordered = 1 THEN 1 ELSE 0 END)::float / COUNT(*), 3) as reorder_rate
-            FROM analytics.fct_orders
-            GROUP BY product_id
-            HAVING COUNT(DISTINCT order_id) >= 10
-            ORDER BY reorder_rate DESC
-            LIMIT 10
-        """).fetchall()
-
-        return jsonify([{
-            "product_id": int(row[0]),
-            "times_ordered": int(row[1]),
-            "reorder_rate": float(row[2])
-        } for row in result])
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+    return jsonify(dashboard_data["top_products"])
 
 @app.route('/api/insights')
 def api_insights():
     """Key business insights"""
-    insights = [
-        "📈 Monday (day 0) has highest user volume: 27,465 users with 61% reorder rate",
-        "⭐ 15 products have 100% reorder rate when ordered 10+ times (highly sticky SKUs)",
-        "🔄 Overall reorder rate: 59.86% - strong retention baseline",
-        "📦 Average basket size: 1.1 items per order (consistent across days)",
-        "🎯 High-frequency products (100% reorder) should drive retention campaigns"
-    ]
-    return jsonify(insights)
+    return jsonify(dashboard_data["insights"])
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=False)

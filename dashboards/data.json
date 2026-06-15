@@ -1,0 +1,117 @@
+✓ Dashboard data pre-computed
+ 1384617,
+    "user_count": 206209,
+    "product_count": 49688,
+    "reorder_rate": 59.86
+  },
+  "metrics": [
+    {
+      "day": 0,
+      "daily_users": 27465,
+      "orders": 27465,
+      "items_per_order": 0.8999999761581421,
+      "reorder_rate": 0.6100000143051147
+    },
+    {
+      "day": 1,
+      "daily_users": 19672,
+      "orders": 19672,
+      "items_per_order": 1.100000023841858,
+      "reorder_rate": 0.5989999771118164
+    },
+    {
+      "day": 2,
+      "daily_users": 16119,
+      "orders": 16119,
+      "items_per_order": 1.2999999523162842,
+      "reorder_rate": 0.5879999995231628
+    },
+    {
+      "day": 3,
+      "daily_users": 15687,
+      "orders": 15687,
+      "items_per_order": 1.2999999523162842,
+      "reorder_rate": 0.5870000123977661
+    },
+    {
+      "day": 4,
+      "daily_users": 15959,
+      "orders": 15959,
+      "items_per_order": 1.2999999523162842,
+      "reorder_rate": 0.5950000286102295
+    },
+    {
+      "day": 5,
+      "daily_users": 17406,
+      "orders": 17406,
+      "items_per_order": 1.2999999523162842,
+      "reorder_rate": 0.6060000061988831
+    },
+    {
+      "day": 6,
+      "daily_users": 18901,
+      "orders": 18901,
+      "items_per_order": 1.2000000476837158,
+      "reorder_rate": 0.593999981880188
+    }
+  ],
+  "top_products": [
+    {
+      "product_id": 32112,
+      "times_ordered": 10,
+      "reorder_rate": 1.0
+    },
+    {
+      "product_id": 25115,
+      "times_ordered": 10,
+      "reorder_rate": 1.0
+    },
+    {
+      "product_id": 39507,
+      "times_ordered": 12,
+      "reorder_rate": 1.0
+    },
+    {
+      "product_id": 5793,
+      "times_ordered": 10,
+      "reorder_rate": 1.0
+    },
+    {
+      "product_id": 15952,
+      "times_ordered": 12,
+      "reorder_rate": 1.0
+    },
+    {
+      "product_id": 1465,
+      "times_ordered": 10,
+      "reorder_rate": 1.0
+    },
+    {
+      "product_id": 34631,
+      "times_ordered": 10,
+      "reorder_rate": 1.0
+    },
+    {
+      "product_id": 20320,
+      "times_ordered": 10,
+      "reorder_rate": 1.0
+    },
+    {
+      "product_id": 8558,
+      "times_ordered": 12,
+      "reorder_rate": 1.0
+    },
+    {
+      "product_id": 40183,
+      "times_ordered": 10,
+      "reorder_rate": 1.0
+    }
+  ],
+  "insights": [
+    "\ud83d\udcc8 Monday has highest users (27K) with 61% reorder rate",
+    "\u2b50 15 products have 100% reorder rate (highly sticky)",
+    "\ud83d\udd04 Overall reorder rate: 59.86%",
+    "\ud83d\udce6 Average basket: 1.1 items per order",
+    "\ud83c\udfaf High-frequency products drive retention"
+  ]
+}

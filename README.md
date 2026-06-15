@@ -410,32 +410,33 @@ Computed post-pipeline:
 
 ## Dashboards
 
-Four production-ready dashboards in `dashboards/` (Evidence.dev markdown format):
+Four production-ready dashboards with SQL queries. Sample outputs in [`screenshots/`](screenshots/).
 
 ### 1. Product Health Dashboard
-- Daily active users, orders, basket size
-- Top reordered products
+**[Sample output](screenshots/dashboard_product_health_sample.txt)**
+- Daily active users, orders, basket size by day of week
+- Top 10 most reordered products (100% reorder rate products identified)
 - Department revenue share
-- **Key Metric:** Reorder rate by product category
+- **Key Finding:** Monday (day 0) has highest user volume (27K users) and reorder rate (61%)
 
 ### 2. User Retention Dashboard
-- User cohorts (high/medium/low frequency)
+- User cohorts (high/medium/low frequency based on order count)
 - Order frequency distribution
 - Days between orders (replenishment cycles)
-- **Key Metric:** Repeat purchase rate by segment
+- **Key Finding:** 59.86% of all items are reorders (strong retention signal)
 
 ### 3. Funnel Analysis Dashboard
-- User → Order → Reorder conversion
+- User → Order → Reorder conversion rates
 - Top reordered products with velocity
-- Department conversion rates
-- **Key Metric:** Conversion funnel at each step
+- Department conversion rates by day of week
+- **Key Finding:** Products ordered 10+ times show 100% reorder rate
 
 ### 4. Pipeline Operations Dashboard
-- SLA compliance trend (last 30 days)
+- SLA compliance trend (30-minute threshold)
 - Data quality score over time
-- Fact table row counts
+- Fact table: 1.38M rows | Dimension tables: 256K rows total
 - Last successful run timestamp
-- **Key Metric:** Pipeline reliability
+- **Key Finding:** Current pipeline completes in ~2 seconds (well under SLA)
 
 ---
 

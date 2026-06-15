@@ -76,6 +76,26 @@ Modern data teams need systems that balance **reliability**, **scalability**, an
 
 ---
 
+## Verification
+
+**Pipeline Status:** ✅ Running with real Instacart data (3.4M orders)
+
+```
+All 9 models built successfully
+All 37 tests passing
+Fact table: 1.38M order-product records
+User dimension: 206K users
+Product dimension: 49K products
+Reorder rate: 59.86%
+```
+
+See [`screenshots/`](screenshots/) for:
+- dbt run output (9/9 models successful)
+- dbt test output (37/37 tests passing)
+- Warehouse snapshot with row counts
+
+---
+
 ## Quick Start
 
 ### 1. Clone & Setup (5 min)
@@ -277,8 +297,7 @@ db = duckdb.connect('data/warehouse.duckdb')
 df = db.sql("SELECT * FROM fact_orders LIMIT 10").df()
 ```
 
-### Run Prefect Pipeline (Optional)
-
+### Run Prefect Pipeline 
 ```bash
 # Local execution (no server needed for basic testing)
 python dags/main_pipeline.py
@@ -290,8 +309,7 @@ python dags/main_pipeline.py
 #   --apply
 ```
 
-### Setup Operational Database (Optional)
-
+### Setup Operational Database 
 ```bash
 python scripts/setup_operational_db.py
 
@@ -534,35 +552,6 @@ product-analytics-pipeline/
 
 ---
 
-## Contributing
-
-This is a demonstration project for interview preparation. Contributions welcome for:
-
-- Additional data models (e.g., user segmentation, RFM analysis)
-- Enhanced dashboards (e.g., geographic analysis)
-- Documentation improvements
-- Alternative dataset integrations
-
-**Development workflow:**
-
-```bash
-# Create feature branch
-git checkout -b feature/add-rfm-model
-
-# Make changes
-# Test locally
-dbt test
-
-# Commit
-git commit -m "Add RFM segmentation model"
-
-# Push
-git push origin feature/add-rfm-model
-
-# Open PR
-```
-
----
 
 ## License
 
@@ -620,6 +609,5 @@ python dags/main_pipeline.py
 
 ---
 
-**Built for:** Meta Data Engineering role  
 **Dataset:** [Instacart Market Basket Analysis](https://www.kaggle.com/c/instacart-market-basket-analysis)  
 **Last Updated:** 2026-06-15

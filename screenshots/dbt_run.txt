@@ -1,0 +1,16 @@
+  dbt-core 2.0.0-alpha.1
+   Loading profiles.yml
+ Succeeded [  0.04s] model analytics.stg_orders (view)
+ Succeeded [  0.04s] model analytics.stg_order_products (view)
+ Succeeded [  0.04s] model analytics.stg_products (view)
+ Succeeded [  0.76s] model analytics.user_retention (table)
+ Succeeded [  0.81s] model analytics.dim_products (table)
+ Succeeded [  0.89s] model analytics.department_performance (table)
+ Succeeded [  1.22s] model analytics.dim_users (table)
+ Succeeded [  1.33s] model analytics.product_funnel (table)
+ Succeeded [  1.41s] model analytics.fct_orders (table)
+
+==================== Execution Summary =====================
+Finished 'run' successfully for target 'dev' [2.0s]
+Processed: 9 models
+Summary: 9 total | 9 success

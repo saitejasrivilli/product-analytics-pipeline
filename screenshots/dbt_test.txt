@@ -1,0 +1,44 @@
+  dbt-core 2.0.0-alpha.1
+   Loading profiles.yml
+    Passed [  0.03s] test  not_null_product_funnel_daily_users
+    Passed [  0.03s] test  not_null_fct_orders_product_id
+    Passed [  0.03s] test  not_null_dim_products_product_id
+    Passed [  0.03s] test  source_not_null_instacart_stg_order_products_order_id
+    Passed [  0.03s] test  source_not_null_instacart_stg_products_product_name
+    Passed [  0.03s] test  source_not_null_instacart_stg_orders_order_id
+    Passed [  0.03s] test  source_not_null_instacart_stg_products_department_id
+    Passed [  0.03s] test  source_not_null_instacart_stg_order_products_add_to_cart_order
+    Passed [  0.03s] test  not_null_dim_users_user_id
+    Passed [  0.03s] test  not_null_product_funnel_daily_orders
+    Passed [  0.03s] test  not_null_stg_products_product_id
+    Passed [  0.03s] test  source_not_null_instacart_stg_order_products_reordered
+    Passed [  0.03s] test  not_null_dim_products_reorder_rate
+    Passed [  0.03s] test  not_null_user_retention_total_orders
+    Passed [  0.03s] test  not_null_dim_products_product_name
+    Passed [  0.03s] test  not_null_fct_orders_order_id
+    Passed [  0.03s] test  source_not_null_instacart_stg_products_product_id
+    Passed [  0.03s] test  unique_dim_products_product_id
+    Passed [  0.04s] test  not_null_stg_orders_order_id
+    Passed [  0.04s] test  not_null_user_retention_user_id
+    Passed [  0.04s] test  not_null_product_funnel_reorder_rate
+    Passed [  0.04s] test  not_null_user_retention_user_cohort
+    Passed [  0.04s] test  not_null_dim_users_user_segment
+    Passed [  0.04s] test  not_null_fct_orders_reordered
+    Passed [  0.04s] test  not_null_product_funnel_metric_date
+    Passed [  0.04s] test  unique_user_retention_user_id
+    Passed [  0.04s] test  source_not_null_instacart_stg_products_aisle_id
+    Passed [  0.04s] test  source_not_null_instacart_stg_order_products_product_id
+    Passed [  0.04s] test  not_null_fct_orders_user_id
+    Passed [  0.04s] test  source_not_null_instacart_stg_orders_user_id
+    Passed [  0.04s] test  unique_stg_products_product_id
+    Passed [  0.04s] test  not_null_department_performance_department_id
+    Passed [  0.04s] test  unique_dim_users_user_id
+    Passed [  0.04s] test  unique_department_performance_department_id
+    Passed [  0.05s] test  source_unique_instacart_stg_products_product_id
+    Passed [  0.08s] test  unique_stg_orders_order_id
+    Passed [  0.10s] test  source_unique_instacart_stg_orders_order_id
+
+==================== Execution Summary =====================
+Finished 'test' successfully for target 'dev' [683ms]
+Processed: 37 tests
+Summary: 37 total | 37 success

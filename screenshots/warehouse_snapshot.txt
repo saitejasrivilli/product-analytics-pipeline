@@ -1,0 +1,30 @@
+======================================================================
+WAREHOUSE SNAPSHOT - PRODUCTION READY
+======================================================================
+
+analytics.fct_orders                |    1,384,617 rows
+analytics.dim_users                 |      206,209 rows
+analytics.dim_products              |       49,688 rows
+analytics.product_funnel            |        2,555 rows
+analytics.user_retention            |      206,209 rows
+analytics.department_performance    |           21 rows
+
+======================================================================
+FACT TABLE SAMPLE (order-product grain)
+======================================================================
+ order_id  user_id  product_id  reordered  order_dow
+   756786   167148        8021          0          3
+  1396366   167150       22395          1          2
+   184696   167153        7751          0          0
+  3287415   167156       33401          0          3
+  3403032   167157       19173          0          4
+
+======================================================================
+KEY METRIC: REORDER RATE
+======================================================================
+ total_items  reordered_items  reorder_rate_pct
+     1384617         828824.0             59.86
+
+✓ Pipeline execution: SUCCESSFUL
+✓ All 9 models: BUILT
+✓ All 37 tests: PASSING

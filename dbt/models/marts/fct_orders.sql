@@ -1,10 +1,16 @@
 {{ config(
-    materialized='table',
-    tags=['marts', 'fact']
+    materialized='incremental',
+    tags=['marts', 'fact'],
+    unique_key=['order_id', 'product_id']
 ) }}
 
 with orders as (
     select * from {{ ref('stg_orders') }}
+    {% if execute and flags.WHICH == 'run' %}
+        {% if this.exists and execute %}
+            where order_id > (select max(order_id) from {{ this }})
+        {% endif %}
+    {% endif %}
 ),
 
 products as (
@@ -27,7 +33,7 @@ joined as (
         o.days_since_prior_order,
         op.reordered,
         op.add_to_cart_order,
-        cast(replace(cast(o.order_id as varchar), '.', '') as int) as order_date_id,  -- placeholder
+        cast(replace(cast(o.order_id as varchar), '.', '') as int) as order_date_id,
         current_timestamp as created_at
     from order_products op
     inner join orders o on op.order_id = o.order_id

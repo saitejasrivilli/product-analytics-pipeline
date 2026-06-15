@@ -74,3 +74,59 @@ models:
         description: Percentage of times product was reordered
         tests:
           - not_null
+
+  - name: product_funnel
+    description: Daily funnel metrics - users, orders, items, reorder rates
+    columns:
+      - name: metric_date
+        description: Date for metrics
+        tests:
+          - not_null
+      - name: daily_users
+        description: Count of distinct users who placed orders
+        tests:
+          - not_null
+      - name: daily_orders
+        description: Count of orders placed
+        tests:
+          - not_null
+      - name: reorder_rate
+        description: Percentage of items reordered
+        tests:
+          - not_null
+
+  - name: user_retention
+    description: Weekly retention cohorts - tracks user retention by week
+    columns:
+      - name: cohort_year
+        description: Year user first ordered
+        tests:
+          - not_null
+      - name: cohort_week
+        description: Week user first ordered
+        tests:
+          - not_null
+      - name: weeks_since_cohort
+        description: Weeks since user's first order
+        tests:
+          - not_null
+      - name: retention_rate
+        description: Percentage of cohort retained
+        tests:
+          - not_null
+
+  - name: department_performance
+    description: Department-level metrics and rankings
+    columns:
+      - name: department_id
+        description: Department identifier
+        tests:
+          - not_null
+          - unique
+      - name: reorder_rate
+        description: Department reorder rate
+      - name: performance_tier
+        description: Performance classification
+        tests:
+          - accepted_values:
+              values: ['top_tier', 'mid_tier', 'emerging']

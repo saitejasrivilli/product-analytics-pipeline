@@ -1,0 +1,41 @@
+version: 2
+
+models:
+  - name: fct_orders
+    tests:
+      - row_count_greater_than_zero
+      - null_rate_check:
+          column_name: order_id
+          threshold: 0.0
+      - null_rate_check:
+          column_name: reordered
+          threshold: 0.0
+
+  - name: dim_users
+    tests:
+      - row_count_greater_than_zero
+      - null_rate_check:
+          column_name: user_id
+          threshold: 0.0
+
+  - name: dim_products
+    tests:
+      - row_count_greater_than_zero
+      - null_rate_check:
+          column_name: product_id
+          threshold: 0.0
+
+  - name: product_funnel
+    tests:
+      - row_count_greater_than_zero
+      - null_rate_check:
+          column_name: metric_date
+          threshold: 0.0
+
+  - name: user_retention
+    tests:
+      - row_count_greater_than_zero
+
+  - name: department_performance
+    tests:
+      - row_count_greater_than_zero

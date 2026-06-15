@@ -1,11 +1,6 @@
 {{ config(
     materialized='table',
-    tags=['marts', 'fact'],
-    indexes=[
-        {'columns': ['order_dow']},
-        {'columns': ['user_id']},
-        {'columns': ['reordered']},
-    ]
+    tags=['marts', 'fact']
 ) }}
 
 with orders as (

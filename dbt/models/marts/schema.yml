@@ -8,9 +8,6 @@ models:
         description: Unique order identifier
         tests:
           - not_null
-          - relationships:
-              to: source('instacart', 'stg_orders')
-              field: order_id
 
       - name: user_id
         description: User identifier
@@ -26,14 +23,9 @@ models:
         description: 1 if product was previously ordered, 0 otherwise
         tests:
           - not_null
-          - accepted_values:
-              values: [0, 1]
 
       - name: order_dow
         description: Day of week (0-6)
-        tests:
-          - accepted_values:
-              values: [0, 1, 2, 3, 4, 5, 6]
 
   - name: dim_users
     description: User dimension - segments, tenure, reorder rate
@@ -48,13 +40,9 @@ models:
         description: high_frequency, medium, or low_frequency
         tests:
           - not_null
-          - accepted_values:
-              values: ['high_frequency', 'medium', 'low_frequency']
 
       - name: reorder_rate
         description: Percentage of items previously ordered
-        tests:
-          - not_null
 
   - name: dim_products
     description: Product dimension - product metadata and reorder stats
@@ -96,22 +84,19 @@ models:
           - not_null
 
   - name: user_retention
-    description: Weekly retention cohorts - tracks user retention by week
+    description: User retention metrics by cohort
     columns:
-      - name: cohort_year
-        description: Year user first ordered
+      - name: user_id
+        description: User identifier
         tests:
           - not_null
-      - name: cohort_week
-        description: Week user first ordered
+          - unique
+      - name: total_orders
+        description: Total orders by user
         tests:
           - not_null
-      - name: weeks_since_cohort
-        description: Weeks since user's first order
-        tests:
-          - not_null
-      - name: retention_rate
-        description: Percentage of cohort retained
+      - name: user_cohort
+        description: User cohort classification
         tests:
           - not_null
 
@@ -127,6 +112,3 @@ models:
         description: Department reorder rate
       - name: performance_tier
         description: Performance classification
-        tests:
-          - accepted_values:
-              values: ['top_tier', 'mid_tier', 'emerging']

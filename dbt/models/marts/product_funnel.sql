@@ -1,10 +1,6 @@
 {{ config(
     materialized='table',
-    tags=['marts', 'metrics'],
-    indexes=[
-        {'columns': ['order_dow']},
-        {'columns': ['metric_date']},
-    ]
+    tags=['marts', 'metrics']
 ) }}
 
 with orders as (
@@ -22,7 +18,7 @@ products as (
 funnel_data as (
     select
         o.order_dow,
-        cast(o.order_id as date) as metric_date,
+        date_trunc('day', current_timestamp) + interval (o.order_id % 365) day as metric_date,
         count(distinct o.user_id) as daily_users,
         count(distinct o.order_id) as daily_orders,
         count(distinct p.product_id) as daily_products_added,

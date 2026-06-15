@@ -17,8 +17,10 @@ clean-targets:
 models:
   product_analytics:
     staging:
-      materialized: view
-      tags: ["staging"]
+      +materialized: view
+      +tags:
+        - staging
     marts:
-      materialized: table
-      tags: ["marts"]
+      +materialized: table
+      +tags:
+        - marts

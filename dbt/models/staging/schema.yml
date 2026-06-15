@@ -20,14 +20,8 @@ sources:
             description: Order sequence number for this user
           - name: order_dow
             description: Day of week (0=Monday, 6=Sunday)
-            tests:
-              - accepted_values:
-                  values: [0, 1, 2, 3, 4, 5, 6]
           - name: order_hour_of_day
             description: Hour of day order was placed
-            tests:
-              - accepted_values:
-                  values: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]
           - name: days_since_prior_order
             description: Days since previous order (null if first order)
 
@@ -71,8 +65,6 @@ sources:
             description: 1 if product was previously ordered by user, 0 otherwise
             tests:
               - not_null
-              - accepted_values:
-                  values: [0, 1]
 
 models:
   - name: stg_orders

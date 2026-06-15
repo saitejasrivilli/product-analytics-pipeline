@@ -96,23 +96,18 @@ See [`screenshots/`](screenshots/) for:
 
 ---
 
-## Deploy Online (Render)
+## Live Dashboard
 
-Dashboard live at: [Coming soon — Deploy to Render]
+**[Open Dashboard](https://product-analytics-pipeline.onrender.com)** ← Click to view live
 
-**Steps:**
-1. Fork this repo → your GitHub account
-2. Go to https://render.com/
-3. New → Web Service
-4. Connect GitHub repo
-5. Runtime: Python 3.11
-6. Build command: `pip install -r requirements-app.txt`
-7. Start command: `gunicorn app:app`
-8. Deploy
+Live at: https://product-analytics-pipeline.onrender.com
 
-Dashboard will be live at `https://your-app-name.onrender.com`
-
-Your Render URL: **[Deploy here](https://dashboard.render.com/select-repo?type=web)**
+Features:
+- Real-time warehouse status (1.38M fact rows)
+- Daily metrics by day of week
+- Top 10 most reordered products
+- Key business insights
+- Fully deployed on Render free tier
 
 ---
 

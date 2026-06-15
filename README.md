@@ -96,6 +96,26 @@ See [`screenshots/`](screenshots/) for:
 
 ---
 
+## Deploy Online (Render)
+
+Dashboard live at: [Coming soon — Deploy to Render]
+
+**Steps:**
+1. Fork this repo → your GitHub account
+2. Go to https://render.com/
+3. New → Web Service
+4. Connect GitHub repo
+5. Runtime: Python 3.11
+6. Build command: `pip install -r requirements-app.txt`
+7. Start command: `gunicorn app:app`
+8. Deploy
+
+Dashboard will be live at `https://your-app-name.onrender.com`
+
+Your Render URL: **[Deploy here](https://dashboard.render.com/select-repo?type=web)**
+
+---
+
 ## Quick Start
 
 ### 1. Clone & Setup (5 min)

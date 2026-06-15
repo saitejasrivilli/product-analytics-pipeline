@@ -169,34 +169,93 @@ def refresh_dashboard():
 
 
 @task
-def send_sla_alert(flow_run_start_time, previous_results):
-    """Log pipeline run; alert if SLA breached"""
+def log_pipeline_run(flow_run_start_time, quality_result):
+    """Log pipeline run metrics to pipeline_runs table"""
+    import json
+    import uuid
+    from datetime import date
+
     duration = (datetime.utcnow() - flow_run_start_time).total_seconds()
     sla_threshold = 30 * 60  # 30 minutes
-
     sla_met = duration < sla_threshold
-    quality_score = previous_results.get("quality_score", 0.0)
+    quality_score = quality_result.get("quality_score", 0.0)
+    fact_rows = quality_result.get("fact_rows", 0)
 
-    logger.info(f"\n{'='*60}")
-    logger.info(f"Pipeline Summary")
-    logger.info(f"{'='*60}")
-    logger.info(f"Duration: {duration:.0f}s (SLA: {sla_threshold}s)")
-    logger.info(f"SLA Met: {'✓ YES' if sla_met else '✗ NO'}")
-    logger.info(f"Quality Score: {quality_score:.2f}")
-    logger.info(f"{'='*60}\n")
+    run_id = str(uuid.uuid4())
 
-    if not sla_met:
-        logger.warning(f"⚠️ SLA BREACHED: {duration:.0f}s > {sla_threshold}s")
+    # Try to log to PostgreSQL, fallback to local JSON log
+    try:
+        import psycopg2
 
-    # Would log to PostgreSQL pipeline_runs table here
-    # Stub implementation shown in monitoring/sla_monitor.py
+        conn = psycopg2.connect(
+            host="localhost",
+            port=5432,
+            user="postgres",
+            password="password",
+            dbname="product_analytics_operational"
+        )
+        cursor = conn.cursor()
+
+        cursor.execute("""
+            INSERT INTO pipeline_runs
+            (run_id, run_date, started_at, completed_at, duration_seconds,
+             rows_processed, sla_met, quality_score, status, notes)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        """, (
+            run_id,
+            date.today(),
+            flow_run_start_time,
+            datetime.utcnow(),
+            int(duration),
+            fact_rows,
+            sla_met,
+            quality_score,
+            "success",
+            f"Quality score: {quality_score:.2f}, Fact rows: {fact_rows:,}"
+        ))
+
+        conn.commit()
+        cursor.close()
+        conn.close()
+
+        logger.info(f"✓ Run logged to PostgreSQL: {run_id}")
+
+    except Exception as e:
+        logger.warning(f"PostgreSQL unavailable ({e}), logging to local file")
+
+        # Fallback: log to local JSON file
+        log_entry = {
+            "run_id": run_id,
+            "run_date": str(date.today()),
+            "duration_seconds": int(duration),
+            "sla_met": sla_met,
+            "quality_score": quality_score,
+            "fact_rows": fact_rows,
+            "error": str(e)
+        }
+
+        with open("pipeline_runs.jsonl", "a") as f:
+            f.write(json.dumps(log_entry) + "\n")
+
+        logger.info(f"✓ Run logged locally: {run_id}")
 
     return {
-        "status": "success",
+        "run_id": run_id,
         "duration_seconds": int(duration),
         "sla_met": sla_met,
         "quality_score": quality_score
     }
+
+
+@task
+def send_sla_alert(log_result):
+    """Alert if SLA breached"""
+    if not log_result.get("sla_met", False):
+        duration = log_result.get("duration_seconds", 0)
+        logger.warning(f"⚠️ SLA BREACHED: {duration}s > 1800s (30min)")
+        # TODO: Send email alert
+
+    return {"status": "success"}
 
 
 @flow(name="product-analytics-pipeline")
@@ -229,11 +288,19 @@ def main_pipeline():
         logger.info("\nTASK 6/7: Quality checks")
         quality_result = run_data_quality_checks()
 
-        logger.info("\nTASK 7/7: SLA alert")
+        logger.info("\nTASK 7/7: Refresh dashboards")
         refresh_dashboard()
-        send_sla_alert(start_time, quality_result)
 
-        logger.info("\n✅ Pipeline completed successfully")
+        logger.info("\nTASK 8/8: Log run + SLA alert")
+        log_result = log_pipeline_run(start_time, quality_result)
+        send_sla_alert(log_result)
+
+        logger.info(f"\n{'='*60}")
+        logger.info(f"✅ Pipeline completed successfully")
+        logger.info(f"Duration: {(datetime.utcnow() - start_time).total_seconds():.0f}s")
+        logger.info(f"SLA Met: {log_result.get('sla_met', False)}")
+        logger.info(f"Quality Score: {log_result.get('quality_score', 0):.2f}")
+        logger.info(f"{'='*60}\n")
 
     except Exception as e:
         logger.error(f"\n❌ Pipeline failed at task: {e}")

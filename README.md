@@ -306,14 +306,48 @@ Free on 8GB M2 with 7GB+ available for OS and concurrent work.
 
 ---
 
+## Quick Start (5 minutes)
+
+### Option 1: With Sample Data (Recommended)
+
+```bash
+# 1. Setup environment
+cd /Users/saitejasrivillibhutturu/Downloads/product-analytics-pipeline
+bash setup.sh
+
+# 2. Generate sample data
+source venv/bin/activate
+python scripts/generate_sample_data.py
+
+# 3. Load to DuckDB
+python scripts/load_raw_data.py
+
+# 4. Build dbt models
+cd dbt && dbt run
+
+# 5. Run tests
+dbt test
+
+# 6. Query the warehouse
+python -c "
+import duckdb
+db = duckdb.connect('data/warehouse.duckdb')
+print(db.sql('SELECT COUNT(*) as fact_rows FROM fact_orders').df())
+"
+```
+
+### Option 2: With Real Kaggle Data
+
+Requires Kaggle API credentials. See below.
+
 ## How to Run
 
 ### Prerequisites
 - Python 3.10+
-- Homebrew (for PostgreSQL)
-- Kaggle account + API token
+- Homebrew (for PostgreSQL, optional)
+- Kaggle account + API token (optional, for real data)
 
-### Setup
+### Full Setup
 
 ```bash
 # 1. Clone repo
@@ -323,8 +357,11 @@ git checkout main
 # 2. Run setup script
 bash setup.sh
 
-# 3. Download dataset
+# 3a. [OPTION: Real Data] Download dataset from Kaggle
 python scripts/download_dataset.py
+
+# 3b. [OPTION: Sample Data] Generate sample data
+python scripts/generate_sample_data.py
 
 # 4. Load raw data
 python scripts/load_raw_data.py
@@ -333,12 +370,17 @@ python scripts/load_raw_data.py
 cd dbt
 dbt debug
 dbt run
-
-# 6. Run tests
 dbt test
 
-# 7. Start Prefect flow (runs daily at 2 AM UTC)
+# 6. Run Prefect pipeline (optional)
+cd ..
 python dags/main_pipeline.py
+
+# 7. Set up PostgreSQL operational DB (optional)
+python scripts/setup_operational_db.py
+
+# 8. Query dashboards
+# Use dashboards/ markdown files with Evidence.dev
 ```
 
 ### Verify Installation
@@ -395,6 +437,28 @@ product-analytics-pipeline/
 ├── setup.sh                  # One-command setup
 └── README.md                 # This file
 ```
+
+---
+
+## For Interviewers & Reviewers
+
+**What to Read First:**
+1. This README (2 min) — architecture and design
+2. `dbt/models/marts/schema.yml` (2 min) — model definitions & tests
+3. `dags/main_pipeline.py` (5 min) — orchestration flow
+4. `dbt/models/marts/fct_orders.sql` (2 min) — core fact table
+5. `dashboards/01_product_health.md` (3 min) — sample dashboard queries
+
+**What Demonstrates Each Skill:**
+| JD Requirement | Proof Point | Where |
+|---|---|---|
+| Data warehouse design | Star schema with documented decisions | `schema.sql`, README design section |
+| ETL implementation | Prefect DAG with 8 sequential tasks, error handling | `dags/main_pipeline.py`, `dags/schema_validator.py` |
+| dbt expertise | 9 models (staging + marts), generic + custom tests | `dbt/models/staging/` and `dbt/models/marts/` |
+| Data quality | dbt tests + quality scorecard + SLA monitoring | `dbt/models/*/schema.yml`, `monitoring/` |
+| SLA definition & management | 30-min threshold, compliance tracking, breach alerts | `monitoring/sla_monitor.py`, schema (`pipeline_runs` table) |
+| Dashboards in production | 4 Evidence.dev markdown dashboards with SQL | `dashboards/` |
+| Data-driven storytelling | Reorder velocity insight + product decision | README insights section |
 
 ---
 

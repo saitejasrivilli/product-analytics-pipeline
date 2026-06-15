@@ -230,7 +230,15 @@ def index():
                     <strong>Answer:</strong> <span style="color: #0066cc; font-weight: bold;">${q.answer}</span>
                 `;
 
+                // Reset flow diagram before running query
+                for (let i = 1; i <= 4; i++) {
+                    const step = document.getElementById(`flow-step-${i}`);
+                    step.style.opacity = '0.3';
+                    step.innerHTML = '❌ ' + (i === 1 ? 'CSV Raw Data' : i === 2 ? 'DuckDB Staging' : i === 3 ? 'dbt Transform' : 'Query Result');
+                }
+                document.getElementById('flow-result').style.display = 'none';
                 document.getElementById('flow-result').innerHTML = q.answer;
+
                 animateFlow(q.steps);
             }
 

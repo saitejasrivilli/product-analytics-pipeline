@@ -73,7 +73,7 @@ def load_data():
             CREATE OR REPLACE TABLE staging.stg_aisles AS
             SELECT
                 aisle_id,
-                aisle_name,
+                aisle as aisle_name,
                 CURRENT_TIMESTAMP as loaded_at
             FROM read_csv_auto('{data_dir}/aisles.csv')
         """)
@@ -86,7 +86,7 @@ def load_data():
             CREATE OR REPLACE TABLE staging.stg_departments AS
             SELECT
                 department_id,
-                department_name,
+                department as department_name,
                 CURRENT_TIMESTAMP as loaded_at
             FROM read_csv_auto('{data_dir}/departments.csv')
         """)

@@ -1,0 +1,44 @@
+# Data
+data/raw/
+data/processed/
+*.duckdb
+*.duckdb-wal
+
+# Python
+venv/
+__pycache__/
+*.pyc
+*.egg-info/
+.pytest_cache/
+dist/
+build/
+
+# dbt
+target/
+dbt_packages/
+profiles.yml
+logs/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+.env
+.env.local
+
+# Airflow/Prefect
+airflow.db
+logs/
+plugins/
+
+# Metabase/Evidence
+metabase_db/
+.evidence/
+
+# CSV backups
+*.csv.bak

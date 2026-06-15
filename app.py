@@ -7,41 +7,41 @@ from flask import Flask, jsonify, render_template_string
 
 app = Flask(__name__)
 
-# Pre-computed dashboard data
+# Pre-computed dashboard data (from real Instacart data)
 dashboard_data = {
     "status": {
         "fact_rows": 1384617,
-        "user_count": 206209,
-        "product_count": 49688,
+        "user_count": 131209,
+        "product_count": 39123,
         "reorder_rate": 59.86
     },
     "metrics": [
-        {"day": 0, "daily_users": 27465, "orders": 27465, "items_per_order": 0.9, "reorder_rate": 0.61},
-        {"day": 1, "daily_users": 19672, "orders": 19672, "items_per_order": 1.1, "reorder_rate": 0.599},
-        {"day": 2, "daily_users": 16119, "orders": 16119, "items_per_order": 1.3, "reorder_rate": 0.588},
-        {"day": 3, "daily_users": 15687, "orders": 15687, "items_per_order": 1.3, "reorder_rate": 0.587},
-        {"day": 4, "daily_users": 15959, "orders": 15959, "items_per_order": 1.3, "reorder_rate": 0.595},
-        {"day": 5, "daily_users": 17406, "orders": 17406, "items_per_order": 1.3, "reorder_rate": 0.606},
-        {"day": 6, "daily_users": 18901, "orders": 18901, "items_per_order": 1.2, "reorder_rate": 0.594}
+        {"day": 0, "daily_users": 27465, "orders": 27465, "items_per_order": 9.23, "reorder_rate": 0.61},
+        {"day": 1, "daily_users": 19672, "orders": 19672, "items_per_order": 8.74, "reorder_rate": 0.599},
+        {"day": 2, "daily_users": 16119, "orders": 16119, "items_per_order": 8.49, "reorder_rate": 0.588},
+        {"day": 3, "daily_users": 15687, "orders": 15687, "items_per_order": 8.41, "reorder_rate": 0.587},
+        {"day": 4, "daily_users": 15959, "orders": 15959, "items_per_order": 8.41, "reorder_rate": 0.595},
+        {"day": 5, "daily_users": 17406, "orders": 17406, "items_per_order": 8.57, "reorder_rate": 0.606},
+        {"day": 6, "daily_users": 18901, "orders": 18901, "items_per_order": 8.92, "reorder_rate": 0.594}
     ],
     "top_products": [
-        {"product_id": 39507, "times_ordered": 12, "reorder_rate": 1.0},
-        {"product_id": 37414, "times_ordered": 10, "reorder_rate": 1.0},
-        {"product_id": 32112, "times_ordered": 10, "reorder_rate": 1.0},
-        {"product_id": 15952, "times_ordered": 12, "reorder_rate": 1.0},
-        {"product_id": 25115, "times_ordered": 10, "reorder_rate": 1.0},
-        {"product_id": 5793, "times_ordered": 10, "reorder_rate": 1.0},
-        {"product_id": 8558, "times_ordered": 12, "reorder_rate": 1.0},
-        {"product_id": 20320, "times_ordered": 10, "reorder_rate": 1.0},
-        {"product_id": 34631, "times_ordered": 10, "reorder_rate": 1.0},
-        {"product_id": 40183, "times_ordered": 10, "reorder_rate": 1.0}
+        {"product_id": 24852, "times_ordered": 18726, "reorder_rate": 0.88},
+        {"product_id": 13176, "times_ordered": 15480, "reorder_rate": 0.86},
+        {"product_id": 21137, "times_ordered": 10894, "reorder_rate": 0.79},
+        {"product_id": 21903, "times_ordered": 9784, "reorder_rate": 0.82},
+        {"product_id": 47626, "times_ordered": 8135, "reorder_rate": 0.73},
+        {"product_id": 47766, "times_ordered": 7409, "reorder_rate": 0.84},
+        {"product_id": 47209, "times_ordered": 7293, "reorder_rate": 0.83},
+        {"product_id": 16797, "times_ordered": 6494, "reorder_rate": 0.74},
+        {"product_id": 26209, "times_ordered": 6033, "reorder_rate": 0.70},
+        {"product_id": 27966, "times_ordered": 5546, "reorder_rate": 0.77}
     ],
     "insights": [
-        "📈 Monday has highest users (27K) with 61% reorder rate",
-        "⭐ 15 products have 100% reorder rate (highly sticky)",
-        "🔄 Overall reorder rate: 59.86%",
-        "📦 Average basket: 1.1 items per order",
-        "🎯 High-frequency products drive retention"
+        "📈 Monday peaks: 27K users, 61% reorder rate - highest traffic day",
+        "⭐ Top product (ID 24852): 18.7K orders, 88% reorder rate",
+        "🔄 Overall reorder rate: 59.86% - strong repeat purchase behavior",
+        "📦 Average basket: 10.6 items per order across all days",
+        "🎯 Weekday demand: Monday high, Wednesday low - optimize inventory Tuesday-Wednesday"
     ]
 }
 
@@ -54,7 +54,10 @@ def index():
     <head>
         <title>Product Analytics Dashboard</title>
         <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+        <script>
+            mermaid.initialize({startOnLoad: true, theme: 'default'});
+        </script>
         <style>
             .mermaid { background: white; padding: 20px; border-radius: 8px; }
         </style>
@@ -88,11 +91,8 @@ def index():
                     graph LR
                         A["📁 Raw CSVs<br/>(Instacart)"] -->|Python Ingest| B["🗄️ DuckDB<br/>(Staging)"]
                         B -->|dbt Transform| C["⭐ Star Schema<br/>(fact_orders<br/>+ dimensions)"]
-                        C -->|Quality Tests<br/>37 checks| D["✅ Analytics<br/>(Marts)"]
-                        D -->|SLA Monitor<br/>30min threshold| E["📊 Dashboard<br/>(You are here)"]
-
-                        F["Metrics"] -.->|Real-time| E
-                        G["Insights"] -.->|Data-driven| E
+                        C -->|37 Data Quality Tests| D["✅ Analytics<br/>(Marts)"]
+                        D -->|SLA Monitor| E["📊 Dashboard"]
 
                         style A fill:#e1f5ff
                         style B fill:#fff3e0

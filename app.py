@@ -4,13 +4,46 @@ Deploy to Render: https://render.com
 """
 
 from flask import Flask, jsonify, render_template_string
-import json
 
 app = Flask(__name__)
 
-# Load pre-computed data
-with open('dashboards/data.json', 'r') as f:
-    dashboard_data = json.load(f)
+# Pre-computed dashboard data
+dashboard_data = {
+    "status": {
+        "fact_rows": 1384617,
+        "user_count": 206209,
+        "product_count": 49688,
+        "reorder_rate": 59.86
+    },
+    "metrics": [
+        {"day": 0, "daily_users": 27465, "orders": 27465, "items_per_order": 0.9, "reorder_rate": 0.61},
+        {"day": 1, "daily_users": 19672, "orders": 19672, "items_per_order": 1.1, "reorder_rate": 0.599},
+        {"day": 2, "daily_users": 16119, "orders": 16119, "items_per_order": 1.3, "reorder_rate": 0.588},
+        {"day": 3, "daily_users": 15687, "orders": 15687, "items_per_order": 1.3, "reorder_rate": 0.587},
+        {"day": 4, "daily_users": 15959, "orders": 15959, "items_per_order": 1.3, "reorder_rate": 0.595},
+        {"day": 5, "daily_users": 17406, "orders": 17406, "items_per_order": 1.3, "reorder_rate": 0.606},
+        {"day": 6, "daily_users": 18901, "orders": 18901, "items_per_order": 1.2, "reorder_rate": 0.594}
+    ],
+    "top_products": [
+        {"product_id": 39507, "times_ordered": 12, "reorder_rate": 1.0},
+        {"product_id": 37414, "times_ordered": 10, "reorder_rate": 1.0},
+        {"product_id": 32112, "times_ordered": 10, "reorder_rate": 1.0},
+        {"product_id": 15952, "times_ordered": 12, "reorder_rate": 1.0},
+        {"product_id": 25115, "times_ordered": 10, "reorder_rate": 1.0},
+        {"product_id": 5793, "times_ordered": 10, "reorder_rate": 1.0},
+        {"product_id": 8558, "times_ordered": 12, "reorder_rate": 1.0},
+        {"product_id": 20320, "times_ordered": 10, "reorder_rate": 1.0},
+        {"product_id": 34631, "times_ordered": 10, "reorder_rate": 1.0},
+        {"product_id": 40183, "times_ordered": 10, "reorder_rate": 1.0}
+    ],
+    "insights": [
+        "📈 Monday has highest users (27K) with 61% reorder rate",
+        "⭐ 15 products have 100% reorder rate (highly sticky)",
+        "🔄 Overall reorder rate: 59.86%",
+        "📦 Average basket: 1.1 items per order",
+        "🎯 High-frequency products drive retention"
+    ]
+}
 
 @app.route('/')
 def index():

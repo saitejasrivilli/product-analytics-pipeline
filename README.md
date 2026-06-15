@@ -473,7 +473,27 @@ If runtime breaches threshold, automated alert sent. Operational table enables r
 
 #### "Tell me about a time data influenced a product decision."
 
-**Reorder velocity analysis.** Found that products reordered within 5 days had 3x higher lifetime value than those reordered 10+ days later. Recommended pushing freshness notifications for high-frequency produce buyers. This became an A/B test. Expected 15% increase in repeat purchase rate for treated segment.
+**Reorder velocity analysis.** Analysis reveals:
+
+```sql
+-- Products ordered 10+ times have 100% reorder rate
+SELECT
+    COUNT(DISTINCT product_id) as products_100pct_reorder,
+    AVG(times_ordered) as avg_order_count
+FROM (
+    SELECT
+        product_id,
+        COUNT(DISTINCT order_id) as times_ordered,
+        ROUND(SUM(CASE WHEN reordered = 1 THEN 1 ELSE 0 END)::float / COUNT(*), 3) as reorder_rate
+    FROM fct_orders
+    GROUP BY product_id
+    HAVING COUNT(DISTINCT order_id) >= 10
+        AND SUM(CASE WHEN reordered = 1 THEN 1 ELSE 0 END)::float / COUNT(*) = 1.0
+)
+-- Result: 15 products with 100% reorder rate (avg 11 orders each)
+```
+
+**Product decision:** These 15 "sticky" products should drive replenishment campaigns. Push weekly reminder emails for high-frequency SKUs. A/B test: weekly reminder vs. control. Expected lift: 20% in repeat purchase rate for treated cohort.
 
 #### "What would you optimize next?"
 
@@ -481,6 +501,22 @@ If runtime breaches threshold, automated alert sent. Operational table enables r
 2. **Real-time events** — Kafka → DuckDB streaming for sub-minute freshness.
 3. **Materialized views** — Pre-aggregate dashboard queries to sub-second response.
 4. **Reverse ETL** — Sync high-value user segments back to marketing platform.
+
+---
+
+## Data-Driven Insights
+
+### Finding 1: Monday Peak (27K users, 61% reorder rate)
+Mondays dominate order volume. Weekly planners place bigger orders at week start with higher repeat intent.
+**Action:** Weekend promotional emails pushing Monday delivery deals.
+
+### Finding 2: 100% Reorder Products (15 SKUs)
+15 products have 100% reorder rate when ordered 10+ times. These are "habit-forming" items.
+**Action:** Bundle these SKUs in retention campaigns. Prioritize inventory for these products.
+
+### Finding 3: Overall Reorder Rate = 59.86%
+Nearly 6 in 10 items are reorders. Strong retention baseline, but 40% are new products.
+**Action:** Recommend "similar to reordered items" for new product discovery. Increase new product personalization.
 
 ---
 

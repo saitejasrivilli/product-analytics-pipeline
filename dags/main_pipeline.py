@@ -6,11 +6,11 @@ Runs daily at 2 AM UTC
 
 from datetime import datetime, timedelta
 from prefect import flow, task
-from prefect.tasks.shell import shell_run_command
 import uuid
 from pathlib import Path
 import logging
 import sys
+import subprocess
 
 # Add dags to path for local imports
 sys.path.insert(0, str(Path(__file__).parent))
@@ -98,12 +98,17 @@ def load_staging_tables():
     logger.info("Loading raw data into DuckDB staging tables...")
 
     try:
-        result = shell_run_command("python scripts/load_raw_data.py")
-        if result.exit_code != 0:
+        result = subprocess.run(
+            ["python", "scripts/load_raw_data.py"],
+            capture_output=True,
+            text=True,
+            check=False
+        )
+        if result.returncode != 0:
             raise RuntimeError(f"Load failed: {result.stderr}")
 
         logger.info(result.stdout)
-        return {"status": "success", "rows_loaded": "3M+"}
+        return {"status": "success", "rows_loaded": "100K+"}
     except Exception as e:
         logger.error(f"Failed to load data: {e}")
         raise
@@ -115,12 +120,22 @@ def run_dbt_models():
     logger.info("Running dbt models (staging + marts)...")
 
     try:
-        result = shell_run_command("cd dbt && dbt run --profiles-dir . --target duckdb_dev")
-        if result.exit_code != 0:
+        result = subprocess.run(
+            [
+                "./venv/bin/dbt",
+                "run",
+                "--project-dir", "dbt",
+                "--profiles-dir", "dbt"
+            ],
+            capture_output=True,
+            text=True,
+            check=False
+        )
+        if result.returncode != 0:
             raise RuntimeError(f"dbt run failed: {result.stderr}")
 
         logger.info(result.stdout)
-        return {"status": "success", "models_run": 6}
+        return {"status": "success", "models_run": 9}
     except Exception as e:
         logger.error(f"dbt run failed: {e}")
         raise
@@ -132,8 +147,18 @@ def run_data_quality_checks():
     logger.info("Running dbt tests and quality checks...")
 
     try:
-        result = shell_run_command("cd dbt && dbt test --profiles-dir . --target duckdb_dev")
-        if result.exit_code != 0:
+        result = subprocess.run(
+            [
+                "./venv/bin/dbt",
+                "test",
+                "--project-dir", "dbt",
+                "--profiles-dir", "dbt"
+            ],
+            capture_output=True,
+            text=True,
+            check=False
+        )
+        if result.returncode != 0:
             logger.warning(f"Some tests failed: {result.stderr}")
 
         logger.info(result.stdout)

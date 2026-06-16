@@ -189,38 +189,62 @@ def index():
             const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
             function runQuery(queryType) {
-                const queries = {
-                    peak_day: { question: 'Which day should advertisers increase budget?', sql: 'SELECT order_dow, COUNT(DISTINCT user_id) FROM fct_orders GROUP BY order_dow ORDER BY COUNT(*) DESC', answer: '📊 Monday: 27,465 users — 18% above weekly avg' },
-                    reorder_rate: { question: 'What\'s the product retention rate?', sql: 'SELECT ROUND(100 * AVG(reordered), 2) FROM fct_orders', answer: '🔄 59.86% reorder rate — 6 in 10 purchases repeat' },
-                    sticky_products: { question: 'Which products have highest stickiness?', sql: 'SELECT product_name, ROUND(100*AVG(reordered)) reorder_pct FROM fct_orders f JOIN dim_products p ON f.product_id=p.product_id GROUP BY product_name ORDER BY reorder_pct DESC LIMIT 5', answer: '⭐ Banana 88% reorder — auto-add feature opportunity' },
-                    low_day: { question: 'When does inventory go underpriced?', sql: 'SELECT order_dow, COUNT(DISTINCT user_id) FROM fct_orders GROUP BY order_dow ORDER BY COUNT(*)', answer: '📉 Wednesday: 16,119 users — 41% below Monday' }
-                };
+                try {
+                    const queries = {
+                        peak_day: { question: 'Which day should advertisers increase budget?', sql: 'SELECT order_dow, COUNT(DISTINCT user_id) FROM fct_orders GROUP BY order_dow ORDER BY COUNT(*) DESC', answer: '📊 Monday: 27,465 users — 18% above weekly avg' },
+                        reorder_rate: { question: 'What\'s the product retention rate?', sql: 'SELECT ROUND(100 * AVG(reordered), 2) FROM fct_orders', answer: '🔄 59.86% reorder rate — 6 in 10 purchases repeat' },
+                        sticky_products: { question: 'Which products have highest stickiness?', sql: 'SELECT product_name, ROUND(100*AVG(reordered)) reorder_pct FROM fct_orders f JOIN dim_products p ON f.product_id=p.product_id GROUP BY product_name ORDER BY reorder_pct DESC LIMIT 5', answer: '⭐ Banana 88% reorder — auto-add feature opportunity' },
+                        low_day: { question: 'When does inventory go underpriced?', sql: 'SELECT order_dow, COUNT(DISTINCT user_id) FROM fct_orders GROUP BY order_dow ORDER BY COUNT(*)', answer: '📉 Wednesday: 16,119 users — 41% below Monday' }
+                    };
 
-                const q = queries[queryType];
-                if (!q) return;
+                    const q = queries[queryType];
+                    if (!q) { console.error('Query not found:', queryType); return; }
 
-                document.getElementById('query-info').innerHTML = `<strong>${q.question}</strong><br/><code style="font-size:11px;">${q.sql}</code><br/><span style="color:#0066cc;font-weight:bold;">${q.answer}</span>`;
+                    const queryInfoEl = document.getElementById('query-info');
+                    if (queryInfoEl) {
+                        queryInfoEl.innerHTML = `<strong>${q.question}</strong><br/><code style="font-size:11px;">${q.sql}</code><br/><span style="color:#0066cc;font-weight:bold;">${q.answer}</span>`;
+                    }
 
-                // Reset flow
-                document.getElementById('flow-step-1').innerHTML = '❌ CSV Raw Data';
-                document.getElementById('flow-step-1').style.opacity = '0.3';
-                document.getElementById('flow-step-2').innerHTML = '❌ DuckDB Staging';
-                document.getElementById('flow-step-2').style.opacity = '0.3';
-                document.getElementById('flow-step-3').innerHTML = '❌ dbt Transform';
-                document.getElementById('flow-step-3').style.opacity = '0.3';
-                document.getElementById('flow-step-4').innerHTML = '❌ Query Result';
-                document.getElementById('flow-step-4').style.opacity = '0.3';
-                document.getElementById('flow-result').style.display = 'none';
+                    // Reset and show flow diagram
+                    const flowDiagram = document.getElementById('flow-diagram');
+                    if (!flowDiagram) return;
 
-                // Show flow diagram
-                document.getElementById('flow-diagram').style.display = 'block';
+                    for (let i = 1; i <= 4; i++) {
+                        const step = document.getElementById(`flow-step-${i}`);
+                        if (step) {
+                            step.innerHTML = '❌ ' + (i === 1 ? 'CSV Raw Data' : i === 2 ? 'DuckDB Staging' : i === 3 ? 'dbt Transform' : 'Query Result');
+                            step.style.opacity = '0.3';
+                        }
+                    }
 
-                // Animate steps
-                setTimeout(() => { document.getElementById('flow-step-1').innerHTML = '✅ CSV Raw Data'; document.getElementById('flow-step-1').style.opacity = '1'; }, 200);
-                setTimeout(() => { document.getElementById('flow-step-2').innerHTML = '✅ DuckDB Staging'; document.getElementById('flow-step-2').style.opacity = '1'; }, 500);
-                setTimeout(() => { document.getElementById('flow-step-3').innerHTML = '✅ dbt Transform'; document.getElementById('flow-step-3').style.opacity = '1'; }, 800);
-                setTimeout(() => { document.getElementById('flow-step-4').innerHTML = '✅ Query Result'; document.getElementById('flow-step-4').style.opacity = '1'; }, 1100);
-                setTimeout(() => { document.getElementById('flow-result').innerHTML = q.answer; document.getElementById('flow-result').style.display = 'block'; }, 1400);
+                    const flowResult = document.getElementById('flow-result');
+                    if (flowResult) flowResult.style.display = 'none';
+                    flowDiagram.style.display = 'block';
+
+                    // Animate steps
+                    setTimeout(() => {
+                        const s1 = document.getElementById('flow-step-1');
+                        if (s1) { s1.innerHTML = '✅ CSV Raw Data'; s1.style.opacity = '1'; }
+                    }, 200);
+                    setTimeout(() => {
+                        const s2 = document.getElementById('flow-step-2');
+                        if (s2) { s2.innerHTML = '✅ DuckDB Staging'; s2.style.opacity = '1'; }
+                    }, 500);
+                    setTimeout(() => {
+                        const s3 = document.getElementById('flow-step-3');
+                        if (s3) { s3.innerHTML = '✅ dbt Transform'; s3.style.opacity = '1'; }
+                    }, 800);
+                    setTimeout(() => {
+                        const s4 = document.getElementById('flow-step-4');
+                        if (s4) { s4.innerHTML = '✅ Query Result'; s4.style.opacity = '1'; }
+                    }, 1100);
+                    setTimeout(() => {
+                        const result = document.getElementById('flow-result');
+                        if (result) { result.innerHTML = q.answer; result.style.display = 'block'; }
+                    }, 1400);
+                } catch (error) {
+                    console.error('Error in runQuery:', error);
+                }
             }
 
             function showAllDays() {

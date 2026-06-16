@@ -248,7 +248,7 @@ def index():
             async function loadData() {
                 try {
                     // Use embedded data (no fetch needed)
-                    const data = JSON.parse(dashboardData);
+                    const data = dashboardData;
                     const status = data.status;
                     const metrics = data.metrics;
 

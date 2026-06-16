@@ -1,6 +1,7 @@
 """
 Dashboard API for product-analytics-pipeline.
 Deploy to Render: https://render.com
+Version: 2.0 (Meta-framed insights, real product data)
 """
 
 from flask import Flask, jsonify, render_template_string

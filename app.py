@@ -331,11 +331,16 @@ def index():
 
                     mermaid.contentLoaded();
                 } catch (error) {
-                    console.error('Error:', error);
+                    console.error('Error loading data:', error);
                 }
             }
 
-            loadData();
+            // Wait for DOM to load before running loadData
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', loadData);
+            } else {
+                loadData();
+            }
         </script>
     </body>
     </html>

@@ -112,3 +112,51 @@ models:
         description: Department reorder rate
       - name: performance_tier
         description: Performance classification
+
+  - name: dim_products_scd
+    description: SCD Type 2 - Product dimension with historical tracking
+    columns:
+      - name: product_id
+        description: Product identifier
+        tests:
+          - not_null
+      - name: product_name
+        description: Product name
+        tests:
+          - not_null
+      - name: valid_from
+        description: Date dimension became valid
+        tests:
+          - not_null
+      - name: valid_to
+        description: Date dimension ceased being valid
+        tests:
+          - not_null
+      - name: is_current
+        description: Flag indicating current version
+        tests:
+          - not_null
+
+  - name: daily_product_metrics
+    description: Pre-aggregated daily product metrics for dashboard performance
+    columns:
+      - name: order_date
+        description: Date of orders
+        tests:
+          - not_null
+      - name: product_id
+        description: Product identifier
+        tests:
+          - not_null
+      - name: daily_orders
+        description: Count of orders containing product on date
+        tests:
+          - not_null
+      - name: daily_reorder_rate
+        description: Reorder rate for product on date (0-100)
+        tests:
+          - not_null
+      - name: daily_unique_users
+        description: Distinct users ordering product on date
+        tests:
+          - not_null

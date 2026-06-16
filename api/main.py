@@ -1,8 +1,11 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 import duckdb
 import os
 from datetime import datetime, timedelta
+from pathlib import Path
 
 app = FastAPI(title="Product Analytics API")
 
@@ -19,8 +22,12 @@ def get_db():
     return duckdb.connect(f"md:product_analytics?motherduck_token={MD_TOKEN}")
 
 @app.get("/")
-def root():
-    return {"service": "product-analytics-api", "status": "running"}
+def serve_dashboard_root():
+    """Serve the static HTML dashboard"""
+    index_path = Path(__file__).parent.parent / "index.html"
+    if index_path.exists():
+        return FileResponse(index_path, media_type="text/html")
+    return {"service": "product-analytics-api", "status": "running", "note": "dashboard not found"}
 
 @app.get("/api/metrics")
 def metrics():

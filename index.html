@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Product Analytics Pipeline</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family: -apple-system, sans-serif; background:#f8f9fa; color:#1a1a1a; }
+.header { background:#1a1a2e; color:white; padding:24px 40px; }
+.header h1 { font-size:22px; font-weight:600; }
+.header p { font-size:13px; color:#aaa; margin-top:4px; }
+.container { max-width:1100px; margin:0 auto; padding:32px 24px; }
+.metrics { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:28px; }
+.card { background:white; border-radius:8px; padding:20px; border-left:4px solid #4361ee; box-shadow:0 1px 3px rgba(0,0,0,.08); }
+.card .label { font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:#666; }
+.card .value { font-size:28px; font-weight:700; color:#1a1a2e; margin-top:6px; }
+.section { background:white; border-radius:8px; padding:24px; margin-bottom:24px; box-shadow:0 1px 3px rgba(0,0,0,.08); }
+.section h2 { font-size:15px; font-weight:600; margin-bottom:16px; color:#1a1a2e; border-bottom:1px solid #f0f0f0; padding-bottom:12px; }
+.charts { display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-bottom:24px; }
+table { width:100%; border-collapse:collapse; font-size:13px; }
+th { text-align:left; padding:10px 12px; background:#f8f9fa; font-weight:600; font-size:11px; text-transform:uppercase; letter-spacing:.04em; color:#666; border-bottom:2px solid #eee; }
+td { padding:10px 12px; border-bottom:1px solid #f0f0f0; }
+tr:hover td { background:#fafafa; }
+.bar-wrap { display:flex; align-items:center; gap:8px; }
+.bar { height:8px; border-radius:4px; background:#4361ee; }
+.insights { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.insight { background:#f8f9fa; border-radius:6px; padding:14px 16px; font-size:13px; line-height:1.5; border-left:3px solid #4361ee; }
+.arch { display:flex; align-items:center; gap:4px; overflow-x:auto; padding:16px 0; flex-wrap:wrap; }
+.node { background:white; border:1px solid #e0e0e0; border-radius:8px; padding:12px 16px; font-size:12px; text-align:center; min-width:110px; }
+.node .icon { font-size:20px; display:block; margin-bottom:4px; }
+.node .sub { font-size:10px; color:#888; margin-top:2px; }
+.arrow { color:#bbb; font-size:16px; padding:0 4px; display:flex; flex-direction:column; align-items:center; }
+.arrow span { font-size:10px; color:#666; white-space:nowrap; }
+.stack { background:#e8f0fe; color:#4361ee; font-size:10px; padding:3px 8px; border-radius:10px; margin-top:4px; }
+a { color:#4361ee; }
+.github { display:inline-flex; align-items:center; gap:6px; background:#24292e; color:white; padding:8px 16px; border-radius:6px; font-size:13px; text-decoration:none; margin-top:4px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>📊 Product Analytics Pipeline</h1>
+  <p>3.4M Instacart orders → DuckDB warehouse → dbt star schema → production dashboards &nbsp;|&nbsp;
+  <a href="https://github.com/saitejasrivilli/product-analytics-pipeline" style="color:#7eb3ff">GitHub</a> &nbsp;|&nbsp;
+  Data refreshed: June 2026</p>
+</div>
+
+<div class="container">
+
+  <div class="metrics">
+    <div class="card"><div class="label">Fact Orders</div><div class="value">1,384,617</div></div>
+    <div class="card" style="border-color:#7b2ff7"><div class="label">Unique Users</div><div class="value">131,209</div></div>
+    <div class="card" style="border-color:#06d6a0"><div class="label">Products</div><div class="value">39,123</div></div>
+    <div class="card" style="border-color:#ef476f"><div class="label">Reorder Rate</div><div class="value">59.86%</div></div>
+  </div>
+
+  <div class="section">
+    <h2>Data Architecture</h2>
+    <div class="arch">
+      <div class="node"><span class="icon">📁</span>Raw CSVs<div class="sub">Instacart 3.4M rows</div></div>
+      <div class="arrow">→<span>Python Ingest<br>Schema + PII checks</span></div>
+      <div class="node"><span class="icon">🗄️</span>DuckDB<div class="sub">Staging tables</div></div>
+      <div class="arrow">→<span>dbt Transform<br>37 quality tests</span></div>
+      <div class="node"><span class="icon">⭐</span>Star Schema<div class="sub">fact_orders + dims</div></div>
+      <div class="arrow">→<span>SLA Monitor<br>30min threshold</span></div>
+      <div class="node"><span class="icon">✅</span>Analytics Marts<div class="sub">9 dbt models</div></div>
+      <div class="arrow">→<span>Prefect DAG<br>8 tasks</span></div>
+      <div class="node" style="background:#fff9c4"><span class="icon">📊</span>Dashboard<div class="sub">You are here</div></div>
+    </div>
+    <div style="margin-top:12px; display:flex; gap:8px; flex-wrap:wrap;">
+      <span class="stack">DuckDB</span>
+      <span class="stack">dbt</span>
+      <span class="stack">Prefect</span>
+      <span class="stack">PostgreSQL</span>
+      <span class="stack">Python</span>
+      <span class="stack">Star Schema</span>
+      <span class="stack">SLA Monitoring</span>
+    </div>
+  </div>
+
+  <div class="charts">
+    <div class="section">
+      <h2>Daily Users by Day of Week</h2>
+      <canvas id="usersChart"></canvas>
+    </div>
+    <div class="section">
+      <h2>Reorder Rate by Day</h2>
+      <canvas id="reorderChart"></canvas>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>Top 10 Most Reordered Products</h2>
+    <table>
+      <thead><tr><th>#</th><th>Product Name</th><th>Times Ordered</th><th>Reorder Rate</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>Banana</td><td>18,726</td><td><div class="bar-wrap"><div class="bar" style="width:88%"></div>88%</div></td></tr>
+        <tr><td>2</td><td>Bag of Organic Bananas</td><td>15,480</td><td><div class="bar-wrap"><div class="bar" style="width:86%"></div>86%</div></td></tr>
+        <tr><td>3</td><td>Organic Strawberries</td><td>10,894</td><td><div class="bar-wrap"><div class="bar" style="width:79%"></div>79%</div></td></tr>
+        <tr><td>4</td><td>Organic Baby Spinach</td><td>9,784</td><td><div class="bar-wrap"><div class="bar" style="width:82%"></div>82%</div></td></tr>
+        <tr><td>5</td><td>Large Lemon</td><td>8,135</td><td><div class="bar-wrap"><div class="bar" style="width:73%"></div>73%</div></td></tr>
+        <tr><td>6</td><td>Organic Avocado</td><td>7,409</td><td><div class="bar-wrap"><div class="bar" style="width:84%"></div>84%</div></td></tr>
+        <tr><td>7</td><td>Organic Hass Avocado</td><td>7,293</td><td><div class="bar-wrap"><div class="bar" style="width:83%"></div>83%</div></td></tr>
+        <tr><td>8</td><td>Strawberries</td><td>6,494</td><td><div class="bar-wrap"><div class="bar" style="width:74%"></div>74%</div></td></tr>
+        <tr><td>9</td><td>Limes</td><td>6,033</td><td><div class="bar-wrap"><div class="bar" style="width:70%"></div>70%</div></td></tr>
+        <tr><td>10</td><td>Organic Raspberries</td><td>5,546</td><td><div class="bar-wrap"><div class="bar" style="width:77%"></div>77%</div></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="section">
+    <h2>Key Insights → Product Decisions</h2>
+    <div class="insights">
+      <div class="insight">📈 <strong>Monday peaks at 27K users</strong> (18% above weekly avg, 61% reorder rate). In a Meta ads context: FMCG advertisers should weight Monday budgets higher — maps directly to automated campaign pacing decisions.</div>
+      <div class="insight">⭐ <strong>Banana: 88% reorder rate</strong> across 18.7K orders signals habitual behavior — the data analog of DAU/MAU in social products. Auto-add or subscription feature for top-10 sticky products reduces friction across 60K+ weekly reorders.</div>
+      <div class="insight">🔄 <strong>59.86% overall reorder rate</strong> = 6 in 10 purchases are repeat behavior. Cold-start problem affects only 40% of catalog — personalization infrastructure ROI is high. Mirrors feature retention analysis for Facebook/Instagram product decisions.</div>
+      <div class="insight">📦 <strong>10.6 avg items per order</strong> maps to session depth in feed products. Users above this threshold show improved retention curves — same principle applies to optimizing feed session length targets in Reels or Stories.</div>
+      <div class="insight">🎯 <strong>Wednesday 41% below Monday</strong> in demand. Inventory surplus opportunity — targeted Wednesday promotions flatten demand curve. In Meta ads: low-demand periods = underpriced ad inventory, signal for reach campaign optimization.</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>Translating to Meta's Product Context</h2>
+    <table>
+      <thead><tr><th>E-commerce Pattern</th><th>Meta Equivalent</th><th>Business Value</th></tr></thead>
+      <tbody>
+        <tr><td>Reorder rate</td><td>Feature retention / DAU-MAU ratio</td><td>Identifies sticky vs one-time features</td></tr>
+        <tr><td>Day-of-week demand</td><td>Feed engagement patterns</td><td>Informs content ranking and ad pacing</td></tr>
+        <tr><td>Basket size (10.6 items)</td><td>Session depth / scroll depth</td><td>Optimizes feed length targets</td></tr>
+        <tr><td>Product stickiness cohorts</td><td>Feature adoption cohorts</td><td>Prioritizes roadmap investment</td></tr>
+        <tr><td>Demand trough pricing</td><td>Ad auction price floors</td><td>Informs inventory monetization</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div style="text-align:center; padding:16px 0 32px;">
+    <a href="https://github.com/saitejasrivilli/product-analytics-pipeline" class="github">
+      ⭐ View Full Source on GitHub
+    </a>
+    <p style="font-size:12px; color:#888; margin-top:12px;">
+      Pipeline: Prefect DAG → DuckDB → dbt (9 models, 37 tests) → SLA monitoring → Dashboard<br>
+      Data: Instacart Market Basket Analysis | Refreshed: June 2026
+    </p>
+  </div>
+
+</div>
+
+<script>
+const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+const users = [18420, 27310, 24180, 16119, 21340, 23870, 22560];
+const reorder = [58.2, 61.1, 60.3, 57.8, 59.4, 60.7, 59.1];
+
+new Chart(document.getElementById('usersChart'), {
+  type: 'bar',
+  data: {
+    labels: days,
+    datasets: [{
+      label: 'Daily Users',
+      data: users,
+      backgroundColor: days.map((_,i) => i===1 ? '#4361ee' : i===3 ? '#ef476f' : '#a8b8f8'),
+      borderRadius: 4
+    }]
+  },
+  options: {
+    plugins: { legend: { display: false } },
+    scales: { y: { beginAtZero: false, min: 10000 } }
+  }
+});
+
+new Chart(document.getElementById('reorderChart'), {
+  type: 'line',
+  data: {
+    labels: days,
+    datasets: [{
+      label: 'Reorder Rate %',
+      data: reorder,
+      borderColor: '#7b2ff7',
+      backgroundColor: 'rgba(123,47,247,0.08)',
+      tension: 0.4,
+      fill: true,
+      pointBackgroundColor: '#7b2ff7'
+    }]
+  },
+  options: {
+    plugins: { legend: { display: false } },
+    scales: { y: { min: 55, max: 65 } }
+  }
+});
+</script>
+</body>
+</html>

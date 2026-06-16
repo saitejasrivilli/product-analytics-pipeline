@@ -128,10 +128,10 @@ def index():
                 <p style="color: #666; font-size: 14px; margin-bottom: 15px;">Watch the query flow through the architecture →</p>
 
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 10px; margin-bottom: 20px;">
-                    <button onclick="runQuery('peak_day')" style="padding: 12px 16px; background: #fff3e0; border: 2px solid #ff9800; border-radius: 4px; cursor: pointer; font-weight: bold;">📈 Which day should advertisers increase budget?</button>
-                    <button onclick="runQuery('reorder_rate')" style="padding: 12px 16px; background: #e8f5e9; border: 2px solid #4caf50; border-radius: 4px; cursor: pointer; font-weight: bold;">🔄 What's the product retention rate?</button>
-                    <button onclick="runQuery('sticky_products')" style="padding: 12px 16px; background: #f3e5f5; border: 2px solid #9c27b0; border-radius: 4px; cursor: pointer; font-weight: bold;">⭐ Which products have highest stickiness?</button>
-                    <button onclick="runQuery('low_day')" style="padding: 12px 16px; background: #e1f5fe; border: 2px solid #2196f3; border-radius: 4px; cursor: pointer; font-weight: bold;">📉 When does inventory go underpriced?</button>
+                    <button data-query="peak_day" class="query-btn" style="padding: 12px 16px; background: #fff3e0; border: 2px solid #ff9800; border-radius: 4px; cursor: pointer; font-weight: bold;">📈 Which day should advertisers increase budget?</button>
+                    <button data-query="reorder_rate" class="query-btn" style="padding: 12px 16px; background: #e8f5e9; border: 2px solid #4caf50; border-radius: 4px; cursor: pointer; font-weight: bold;">🔄 What's the product retention rate?</button>
+                    <button data-query="sticky_products" class="query-btn" style="padding: 12px 16px; background: #f3e5f5; border: 2px solid #9c27b0; border-radius: 4px; cursor: pointer; font-weight: bold;">⭐ Which products have highest stickiness?</button>
+                    <button data-query="low_day" class="query-btn" style="padding: 12px 16px; background: #e1f5fe; border: 2px solid #2196f3; border-radius: 4px; cursor: pointer; font-weight: bold;">📉 When does inventory go underpriced?</button>
                 </div>
 
                 <div id="flow-diagram" style="display: none; background: #f9f9f9; padding: 15px; border-radius: 4px; margin-bottom: 15px; font-family: monospace; font-size: 12px; line-height: 1.8;">
@@ -395,12 +395,18 @@ def index():
                 }
             }
 
-            // Wait for DOM to load before running loadData
-            if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', loadData);
-            } else {
+            // Add event listeners to query buttons
+            document.addEventListener('DOMContentLoaded', function() {
+                const queryButtons = document.querySelectorAll('.query-btn');
+                queryButtons.forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const queryType = this.getAttribute('data-query');
+                        console.log('Button clicked, query type:', queryType);
+                        runQuery(queryType);
+                    });
+                });
                 loadData();
-            }
+            });
         </script>
     </body>
     </html>

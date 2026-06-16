@@ -17,22 +17,23 @@ cloud.execute("CREATE DATABASE IF NOT EXISTS product_analytics")
 cloud.execute("USE product_analytics")
 
 tables = [
-    "fact_orders",
-    "dim_users",
-    "dim_products",
-    "dim_departments",
-    "product_funnel",
-    "user_retention",
-    "department_performance"
+    "analytics.fct_orders",
+    "analytics.dim_users",
+    "analytics.dim_products",
+    "analytics.dim_departments",
+    "analytics.product_funnel",
+    "analytics.user_retention",
+    "analytics.department_performance"
 ]
 
 for table in tables:
     try:
-        print(f"Migrating {table}...", end=" ")
+        table_name = table.split(".")[-1]
+        print(f"Migrating {table_name}...", end=" ")
         df = local.execute(f"SELECT * FROM {table}").df()
-        cloud.execute(f"DROP TABLE IF EXISTS {table}")
-        cloud.execute(f"CREATE TABLE {table} AS SELECT * FROM df")
-        count = cloud.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0]
+        cloud.execute(f"DROP TABLE IF EXISTS {table_name}")
+        cloud.execute(f"CREATE TABLE {table_name} AS SELECT * FROM df")
+        count = cloud.execute(f"SELECT COUNT(*) FROM {table_name}").fetchone()[0]
         print(f"✅ {count:,} rows")
     except Exception as e:
         print(f"⚠️ {e}")

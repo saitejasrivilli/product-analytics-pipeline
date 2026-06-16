@@ -189,6 +189,8 @@ def index():
             const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
             function runQuery(queryType) {
+                console.log('runQuery called with:', queryType);
+                alert('Query button clicked: ' + queryType);
                 try {
                     const queries = {
                         peak_day: { question: 'Which day should advertisers increase budget?', sql: 'SELECT order_dow, COUNT(DISTINCT user_id) FROM fct_orders GROUP BY order_dow ORDER BY COUNT(*) DESC', answer: '📊 Monday: 27,465 users — 18% above weekly avg' },

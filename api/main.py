@@ -17,10 +17,9 @@ app.add_middleware(
     allow_headers=["*"]
 )
 
-MD_TOKEN = os.environ.get("MOTHERDUCK_TOKEN", "")
-
 def get_db():
-    return duckdb.connect(f"md:product_analytics?motherduck_token={MD_TOKEN}")
+    token = os.environ.get("MOTHERDUCK_TOKEN", "")
+    return duckdb.connect(f"md:product_analytics?motherduck_token={token}")
 
 def get_pg_conn():
     """Connect to PostgreSQL operational database"""

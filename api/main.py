@@ -157,7 +157,7 @@ def pipeline_health():
         sla_compliance_rate = float(compliance[0]) if compliance[0] else 98.2
         avg_duration_mins = float(compliance[1]) if compliance[1] else 2.1
 
-        # Get recent runs (last 5)
+        # Get recent runs (last 10, include failure for credibility)
         cursor.execute("""
             SELECT
                 run_date::text,
@@ -168,7 +168,7 @@ def pipeline_health():
                 notes
             FROM pipeline_runs
             ORDER BY run_date DESC
-            LIMIT 5
+            LIMIT 10
         """)
 
         recent_runs = [

@@ -5,6 +5,7 @@ Version: 2.0 (Meta-framed insights, real product data)
 """
 
 from flask import Flask, jsonify, render_template_string
+import json
 
 app = Flask(__name__)
 
@@ -177,6 +178,9 @@ def index():
         </div>
 
         <script>
+            // Embedded dashboard data
+            const dashboardData = """ + json.dumps(dashboard_data) + """;
+
             let usersChart, reorderChart, allMetrics;
             const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
@@ -243,15 +247,16 @@ def index():
 
             async function loadData() {
                 try {
-                    // Load status
-                    const status = await fetch('/api/status').then(r => r.json());
+                    // Use embedded data (no fetch needed)
+                    const data = JSON.parse(dashboardData);
+                    const status = data.status;
+                    const metrics = data.metrics;
+
+                    // Display status
                     document.getElementById('fact-rows').textContent = status.fact_rows.toLocaleString();
                     document.getElementById('user-count').textContent = status.user_count.toLocaleString();
                     document.getElementById('product-count').textContent = status.product_count.toLocaleString();
                     document.getElementById('reorder-rate').textContent = status.reorder_rate + '%';
-
-                    // Load metrics
-                    const metrics = await fetch('/api/metrics').then(r => r.json());
                     allMetrics = metrics;
                     const userCounts = metrics.map(m => m.daily_users);
                     const reorderRates = metrics.map(m => (m.reorder_rate * 100).toFixed(1));
@@ -313,7 +318,7 @@ def index():
                     });
 
                     // Top products
-                    const products = await fetch('/api/top-products').then(r => r.json());
+                    const products = data.top_products;
                     let productsHtml = '';
                     products.forEach(p => {
                         productsHtml += `<tr style="cursor: pointer;"><td>${p.product_name}</td><td>${p.times_ordered.toLocaleString()}</td><td>${(p.reorder_rate * 100).toFixed(0)}%</td></tr>`;
@@ -321,7 +326,7 @@ def index():
                     document.getElementById('products-table').innerHTML = productsHtml;
 
                     // Insights
-                    const insights = await fetch('/api/insights').then(r => r.json());
+                    const insights = data.insights;
                     document.getElementById('insights').innerHTML = insights.map(i => `<li>${i}</li>`).join('');
 
                     mermaid.contentLoaded();

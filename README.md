@@ -76,19 +76,16 @@ Modern data teams need systems that balance **reliability**, **scalability**, an
 
 ---
 
-## Translating to Meta's Context
+## Why This Architecture Matters
 
-This project uses Instacart e-commerce data, but the **analytical patterns map directly to Meta's product and ads ecosystem:**
+The data engineering patterns here—**star schema, SLA monitoring, pipeline instrumentation, quality validation**—are domain-agnostic. Whether analyzing e-commerce orders, social media engagement, ad performance, or user retention, the infrastructure stays the same:
 
-| E-commerce Pattern | Meta Equivalent | Why It Matters |
-|---|---|---|
-| **Reorder rate** (59.86%) | Feature retention / DAU-MAU ratio | Identifies sticky vs. one-time features for roadmap prioritization |
-| **Day-of-week demand variance** | Feed engagement patterns by time | Informs content ranking algorithms and ad pacing strategies |
-| **Basket size distribution** (10.6 items) | Session depth / scroll depth | Optimizes feed length targets to maximize engagement |
-| **Product cohort analysis** | Feature adoption cohorts | Prioritizes investment in high-retention features |
-| **Demand trough pricing** | Ad auction price floors | Informs inventory monetization during low-demand periods |
+- Warehouse layer decouples source data from analysis
+- Quality tests catch schema drift before it breaks dashboards
+- SLA monitoring surfaces pipeline failures in real-time
+- Incremental materialization scales to billions of rows
 
-**Why this matters:** The data engineering patterns—star schema design, SLA monitoring, pipeline instrumentation, quality validation—are domain-agnostic. The same infrastructure built here powers product analytics for Facebook, Instagram, WhatsApp, or Threads with a schema change.
+This is the foundation every data team needs, regardless of domain.
 
 ---
 

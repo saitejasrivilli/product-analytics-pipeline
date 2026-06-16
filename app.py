@@ -107,19 +107,19 @@ def index():
             <div class="grid">
                 <div class="card metric-card">
                     <div class="metric-label">Fact Orders</div>
-                    <div class="metric-value" id="fact-rows">-</div>
+                    <div class="metric-value" id="fact-rows">""" + f"{dashboard_data['status']['fact_rows']:,}" + """</div>
                 </div>
                 <div class="card metric-card">
                     <div class="metric-label">Users</div>
-                    <div class="metric-value" id="user-count">-</div>
+                    <div class="metric-value" id="user-count">""" + f"{dashboard_data['status']['user_count']:,}" + """</div>
                 </div>
                 <div class="card metric-card">
                     <div class="metric-label">Products</div>
-                    <div class="metric-value" id="product-count">-</div>
+                    <div class="metric-value" id="product-count">""" + f"{dashboard_data['status']['product_count']:,}" + """</div>
                 </div>
                 <div class="card metric-card">
                     <div class="metric-label">Reorder Rate</div>
-                    <div class="metric-value" id="reorder-rate">-</div>
+                    <div class="metric-value" id="reorder-rate">""" + f"{dashboard_data['status']['reorder_rate']}%" + """</div>
                 </div>
             </div>
 

@@ -147,13 +147,12 @@ def pipeline_health():
     try:
         cursor = pg_conn.cursor()
 
-        # Get SLA compliance rate (last 7 days)
+        # Get SLA compliance rate (all time)
         cursor.execute("""
             SELECT
-                ROUND(100.0 * SUM(CASE WHEN sla_met THEN 1 ELSE 0 END) / COUNT(*), 2) as compliance_pct,
-                AVG(EXTRACT(EPOCH FROM (completed_at - started_at)) / 60.0) as avg_duration_mins
+                ROUND(100.0 * SUM(CASE WHEN sla_met THEN 1 ELSE 0 END) / COUNT(*), 1) as compliance_pct,
+                ROUND(AVG(EXTRACT(EPOCH FROM (completed_at - started_at)) / 60.0)::numeric, 1) as avg_duration_mins
             FROM pipeline_runs
-            WHERE run_date >= CURRENT_DATE - INTERVAL '7 days'
         """)
         compliance = cursor.fetchone()
         sla_compliance_rate = float(compliance[0]) if compliance[0] else 98.2

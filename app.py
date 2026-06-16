@@ -4,8 +4,7 @@ Deploy to Render: https://render.com
 Version: 2.0 (Meta-framed insights, real product data)
 """
 
-from flask import Flask, jsonify, render_template_string
-import json
+from flask import Flask, render_template_string
 
 app = Flask(__name__)
 
@@ -123,43 +122,6 @@ def index():
                 </div>
             </div>
 
-            <div class="card">
-                <h2>💬 Query Builder: Ask Questions About Data</h2>
-                <p style="color: #666; font-size: 14px; margin-bottom: 15px;">Watch the query flow through the architecture →</p>
-
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 10px; margin-bottom: 20px;">
-                    <button data-query="peak_day" class="query-btn" style="padding: 12px 16px; background: #fff3e0; border: 2px solid #ff9800; border-radius: 4px; cursor: pointer; font-weight: bold;">📈 Which day should advertisers increase budget?</button>
-                    <button data-query="reorder_rate" class="query-btn" style="padding: 12px 16px; background: #e8f5e9; border: 2px solid #4caf50; border-radius: 4px; cursor: pointer; font-weight: bold;">🔄 What's the product retention rate?</button>
-                    <button data-query="sticky_products" class="query-btn" style="padding: 12px 16px; background: #f3e5f5; border: 2px solid #9c27b0; border-radius: 4px; cursor: pointer; font-weight: bold;">⭐ Which products have highest stickiness?</button>
-                    <button data-query="low_day" class="query-btn" style="padding: 12px 16px; background: #e1f5fe; border: 2px solid #2196f3; border-radius: 4px; cursor: pointer; font-weight: bold;">📉 When does inventory go underpriced?</button>
-                </div>
-
-                <div id="flow-diagram" style="display: none; background: #f9f9f9; padding: 15px; border-radius: 4px; margin-bottom: 15px; font-family: monospace; font-size: 12px; line-height: 1.8;">
-                    <div id="flow-step-1" style="opacity: 0.3;">❌ CSV Raw Data</div>
-                    <div style="color: #999; text-align: center;">↓</div>
-                    <div id="flow-step-2" style="opacity: 0.3;">❌ DuckDB Staging</div>
-                    <div style="color: #999; text-align: center;">↓</div>
-                    <div id="flow-step-3" style="opacity: 0.3;">❌ dbt Transform</div>
-                    <div style="color: #999; text-align: center;">↓</div>
-                    <div id="flow-step-4" style="opacity: 0.3;">❌ Query Result</div>
-                    <div id="flow-result" style="background: white; padding: 10px; border-radius: 4px; margin-top: 10px; display: none; color: #0066cc; font-weight: bold;"></div>
-                </div>
-
-                <div id="query-info" style="color: #666; font-size: 14px;"></div>
-            </div>
-
-            <div class="grid">
-                <div class="card chart-card">
-                    <h2>Daily Users by Day of Week</h2>
-                    <p style="color: #666; font-size: 12px;">Click bars to drill down</p>
-                    <canvas id="usersChart"></canvas>
-                </div>
-                <div class="card chart-card">
-                    <h2>Reorder Rate by Day</h2>
-                    <p style="color: #666; font-size: 12px;">Hover for details</p>
-                    <canvas id="reorderChart"></canvas>
-                </div>
-            </div>
 
             <div class="card">
                 <h2>Top 10 Most Reordered Products</h2>
@@ -413,25 +375,6 @@ def index():
     """
     return render_template_string(html)
 
-@app.route('/api/status')
-def api_status():
-    """Warehouse status metrics"""
-    return jsonify(dashboard_data["status"])
-
-@app.route('/api/metrics')
-def api_metrics():
-    """Daily metrics by day of week"""
-    return jsonify(dashboard_data["metrics"])
-
-@app.route('/api/top-products')
-def api_top_products():
-    """Top 10 most reordered products"""
-    return jsonify(dashboard_data["top_products"])
-
-@app.route('/api/insights')
-def api_insights():
-    """Key business insights"""
-    return jsonify(dashboard_data["insights"])
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=False)

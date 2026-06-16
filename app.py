@@ -167,13 +167,17 @@ def index():
                     <thead>
                         <tr><th>Product Name</th><th>Times Ordered</th><th>Reorder Rate</th></tr>
                     </thead>
-                    <tbody id="products-table"></tbody>
+                    <tbody id="products-table">
+""" + "\n".join([f'                        <tr><td>{p["product_name"]}</td><td>{p["times_ordered"]:,}</td><td>{int(p["reorder_rate"]*100)}%</td></tr>' for p in dashboard_data["top_products"]]) + """
+                    </tbody>
                 </table>
             </div>
 
             <div class="card">
                 <h2>Key Insights</h2>
-                <ul class="insights-list" id="insights"></ul>
+                <ul class="insights-list" id="insights">
+""" + "\n".join([f'                    <li>{insight}</li>' for insight in dashboard_data["insights"]]) + """
+                </ul>
             </div>
         </div>
 

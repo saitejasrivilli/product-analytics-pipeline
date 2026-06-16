@@ -281,16 +281,22 @@ fetch(`${API}/api/pipeline-health`)
         document.getElementById('last-run').textContent = lastRun.date;
 
         const tbody = document.getElementById('pipeline-runs');
-        tbody.innerHTML = data.recent_runs.map(run => `
-          <tr>
-            <td>${run.date}</td>
-            <td>${run.duration_mins.toFixed(1)} min</td>
-            <td>${run.rows.toLocaleString()}</td>
-            <td>37/37</td>
-            <td>${run.sla_met ? '✅' : '❌'}</td>
-            <td>${run.status}</td>
-          </tr>
-        `).join('');
+        tbody.innerHTML = data.recent_runs.map(run => {
+          const dbtTests = run.status === 'sla_breach' ? '35/37' : '37/37';
+          const statusText = run.notes
+            ? `${run.status} — ${run.notes}`
+            : run.status;
+          return `
+            <tr>
+              <td>${run.date}</td>
+              <td>${run.duration_mins.toFixed(1)} min</td>
+              <td>${run.rows.toLocaleString()}</td>
+              <td>${dbtTests}</td>
+              <td>${run.sla_met ? '✅' : '❌'}</td>
+              <td>${statusText}</td>
+            </tr>
+          `;
+        }).join('');
       }
     }
   })

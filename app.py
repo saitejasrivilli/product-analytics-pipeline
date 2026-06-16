@@ -46,6 +46,10 @@ dashboard_data = {
     ]
 }
 
+@app.route('/health')
+def health():
+    return {'status': 'ok'}, 200
+
 @app.route('/')
 def index():
     """Dashboard homepage"""

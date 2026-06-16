@@ -49,10 +49,10 @@ a { color:#4361ee; }
 <div class="container">
 
   <div class="metrics">
-    <div class="card"><div class="label">Fact Orders</div><div class="value">1,384,617</div></div>
-    <div class="card" style="border-color:#7b2ff7"><div class="label">Unique Users</div><div class="value">131,209</div></div>
-    <div class="card" style="border-color:#06d6a0"><div class="label">Products</div><div class="value">39,123</div></div>
-    <div class="card" style="border-color:#ef476f"><div class="label">Reorder Rate</div><div class="value">59.86%</div></div>
+    <div class="card"><div class="label">Fact Orders</div><div class="value" id="metric-orders">-</div></div>
+    <div class="card" style="border-color:#7b2ff7"><div class="label">Unique Users</div><div class="value" id="metric-users">-</div></div>
+    <div class="card" style="border-color:#06d6a0"><div class="label">Products</div><div class="value" id="metric-products">-</div></div>
+    <div class="card" style="border-color:#ef476f"><div class="label">Reorder Rate</div><div class="value" id="metric-reorder">-</div></div>
   </div>
 
   <div class="section">
@@ -147,46 +147,86 @@ a { color:#4361ee; }
 </div>
 
 <script>
-const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
-const users = [18420, 27310, 24180, 16119, 21340, 23870, 22560];
-const reorder = [58.2, 61.1, 60.3, 57.8, 59.4, 60.7, 59.1];
+const API = window.location.hostname === 'localhost'
+  ? 'http://localhost:8000'
+  : 'https://product-analytics-pipeline.onrender.com';
 
-new Chart(document.getElementById('usersChart'), {
-  type: 'bar',
-  data: {
-    labels: days,
-    datasets: [{
-      label: 'Daily Users',
-      data: users,
-      backgroundColor: days.map((_,i) => i===1 ? '#4361ee' : i===3 ? '#ef476f' : '#a8b8f8'),
-      borderRadius: 4
-    }]
-  },
-  options: {
-    plugins: { legend: { display: false } },
-    scales: { y: { beginAtZero: false, min: 10000 } }
-  }
-});
+// Fetch and display metrics
+fetch(`${API}/api/metrics`)
+  .then(r => r.json())
+  .then(data => {
+    if(data.fact_orders) {
+      document.getElementById('metric-orders').textContent = data.fact_orders.toLocaleString();
+      document.getElementById('metric-users').textContent = data.users.toLocaleString();
+      document.getElementById('metric-products').textContent = data.products.toLocaleString();
+      document.getElementById('metric-reorder').textContent = data.reorder_rate.toFixed(2) + '%';
+    }
+  })
+  .catch(e => console.log('Metrics load failed:', e));
 
-new Chart(document.getElementById('reorderChart'), {
-  type: 'line',
-  data: {
-    labels: days,
-    datasets: [{
-      label: 'Reorder Rate %',
-      data: reorder,
-      borderColor: '#7b2ff7',
-      backgroundColor: 'rgba(123,47,247,0.08)',
-      tension: 0.4,
-      fill: true,
-      pointBackgroundColor: '#7b2ff7'
-    }]
-  },
-  options: {
-    plugins: { legend: { display: false } },
-    scales: { y: { min: 55, max: 65 } }
+// Fetch and display charts
+Promise.all([
+  fetch(`${API}/api/daily-stats`).then(r => r.json()),
+  fetch(`${API}/api/top-products`).then(r => r.json())
+]).then(([dailyStats, topProducts]) => {
+
+  // Day of week charts
+  if(dailyStats && dailyStats.length) {
+    const days = dailyStats.map(d => d.day);
+    const users = dailyStats.map(d => d.users);
+    const reorder = dailyStats.map(d => d.reorder_rate);
+
+    new Chart(document.getElementById('usersChart'), {
+      type: 'bar',
+      data: {
+        labels: days,
+        datasets: [{
+          label: 'Daily Users',
+          data: users,
+          backgroundColor: days.map((_,i) => i===0 ? '#4361ee' : '#a8b8f8'),
+          borderRadius: 4
+        }]
+      },
+      options: {
+        plugins: { legend: { display: false } },
+        scales: { y: { beginAtZero: false } }
+      }
+    });
+
+    new Chart(document.getElementById('reorderChart'), {
+      type: 'line',
+      data: {
+        labels: days,
+        datasets: [{
+          label: 'Reorder Rate %',
+          data: reorder,
+          borderColor: '#7b2ff7',
+          backgroundColor: 'rgba(123,47,247,0.08)',
+          tension: 0.4,
+          fill: true,
+          pointBackgroundColor: '#7b2ff7'
+        }]
+      },
+      options: {
+        plugins: { legend: { display: false } },
+        scales: { y: { min: 50, max: 65 } }
+      }
+    });
   }
-});
+
+  // Update products table
+  if(topProducts && topProducts.length) {
+    const tbody = document.querySelector('table tbody');
+    tbody.innerHTML = topProducts.map((p, i) => `
+      <tr>
+        <td>${i+1}</td>
+        <td>${p.name}</td>
+        <td>${p.times_ordered.toLocaleString()}</td>
+        <td><div class="bar-wrap"><div class="bar" style="width:${p.reorder_rate}%"></div>${p.reorder_rate}%</div></td>
+      </tr>
+    `).join('');
+  }
+}).catch(e => console.log('Data load failed:', e));
 </script>
 </body>
 </html>

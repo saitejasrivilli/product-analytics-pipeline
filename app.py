@@ -245,24 +245,48 @@ def index():
                 reorderChart.update();
             }
 
-            async function loadData() {
+            function loadData() {
                 try {
                     // Use embedded data (no fetch needed)
                     const data = dashboardData;
+
+                    if (!data || !data.status) {
+                        console.error('Data not available:', data);
+                        return;
+                    }
+
                     const status = data.status;
                     const metrics = data.metrics;
 
-                    // Display status
-                    document.getElementById('fact-rows').textContent = status.fact_rows.toLocaleString();
-                    document.getElementById('user-count').textContent = status.user_count.toLocaleString();
-                    document.getElementById('product-count').textContent = status.product_count.toLocaleString();
-                    document.getElementById('reorder-rate').textContent = status.reorder_rate + '%';
+                    // Display status metrics
+                    const factRowsEl = document.getElementById('fact-rows');
+                    if (factRowsEl) factRowsEl.textContent = (status.fact_rows || 0).toLocaleString();
+
+                    const userCountEl = document.getElementById('user-count');
+                    if (userCountEl) userCountEl.textContent = (status.user_count || 0).toLocaleString();
+
+                    const productCountEl = document.getElementById('product-count');
+                    if (productCountEl) productCountEl.textContent = (status.product_count || 0).toLocaleString();
+
+                    const reorderRateEl = document.getElementById('reorder-rate');
+                    if (reorderRateEl) reorderRateEl.textContent = (status.reorder_rate || 0) + '%';
                     allMetrics = metrics;
+                    if (!metrics || metrics.length === 0) {
+                        console.error('No metrics data');
+                        return;
+                    }
+
                     const userCounts = metrics.map(m => m.daily_users);
                     const reorderRates = metrics.map(m => (m.reorder_rate * 100).toFixed(1));
 
                     // Users chart
-                    const usersCtx = document.getElementById('usersChart').getContext('2d');
+                    const usersChartEl = document.getElementById('usersChart');
+                    if (!usersChartEl) {
+                        console.error('usersChart element not found');
+                        return;
+                    }
+
+                    const usersCtx = usersChartEl.getContext('2d');
                     usersChart = new Chart(usersCtx, {
                         type: 'bar',
                         data: {
@@ -318,16 +342,22 @@ def index():
                     });
 
                     // Top products
-                    const products = data.top_products;
-                    let productsHtml = '';
-                    products.forEach(p => {
-                        productsHtml += `<tr style="cursor: pointer;"><td>${p.product_name}</td><td>${p.times_ordered.toLocaleString()}</td><td>${(p.reorder_rate * 100).toFixed(0)}%</td></tr>`;
-                    });
-                    document.getElementById('products-table').innerHTML = productsHtml;
+                    const products = data.top_products || [];
+                    if (products.length > 0) {
+                        let productsHtml = '';
+                        products.forEach(p => {
+                            productsHtml += `<tr style="cursor: pointer;"><td>${p.product_name || 'N/A'}</td><td>${(p.times_ordered || 0).toLocaleString()}</td><td>${((p.reorder_rate || 0) * 100).toFixed(0)}%</td></tr>`;
+                        });
+                        const productsTableEl = document.getElementById('products-table');
+                        if (productsTableEl) productsTableEl.innerHTML = productsHtml;
+                    }
 
                     // Insights
-                    const insights = data.insights;
-                    document.getElementById('insights').innerHTML = insights.map(i => `<li>${i}</li>`).join('');
+                    const insights = data.insights || [];
+                    if (insights.length > 0) {
+                        const insightsEl = document.getElementById('insights');
+                        if (insightsEl) insightsEl.innerHTML = insights.map(i => `<li>${i}</li>`).join('');
+                    }
 
                     mermaid.contentLoaded();
                 } catch (error) {

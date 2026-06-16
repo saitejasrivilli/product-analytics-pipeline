@@ -64,10 +64,18 @@ Modern data teams need systems that balance **reliability**, **scalability**, an
 - Compliance tracking via `pipeline_runs` table
 - Breach alerts with full audit trail
 
+✅ **Production API (5 Endpoints)**
+- `/api/metrics` - Real-time warehouse stats
+- `/api/dbt-tests` - 37 automated test results
+- `/api/pipeline-health` - SLA compliance (98.2%) + run history
+- `/api/cost-analysis` - MotherDuck optimization metrics
+- `/api/query` - Live SQL execution (SELECT only)
+
 ✅ **Production Dashboards**
-- 4 Evidence.dev dashboards (markdown-based, SQL-driven)
-- Product health, retention, funnel, operations
-- Ready for deployment
+- Static HTML with Chart.js (no build required)
+- Real-time data from FastAPI backend
+- Product health, reorder rates, pipeline health
+- Deployed on Render free tier
 
 ✅ **Orchestration**
 - Prefect DAG with 8 sequential tasks
@@ -109,18 +117,50 @@ See [`screenshots/`](screenshots/) for:
 
 ---
 
-## Live Dashboard
+## Live Dashboard & API
 
 **[Open Dashboard](https://product-analytics-pipeline.onrender.com)** ← Click to view live
 
-Live at: https://product-analytics-pipeline.onrender.com
+**Live at:** https://product-analytics-pipeline.onrender.com
 
-Features:
-- Real-time warehouse status (1.38M fact rows)
-- Daily metrics by day of week
-- Top 10 most reordered products
-- Key business insights
-- Fully deployed on Render free tier
+**Dashboard Features:**
+- Real-time warehouse metrics from API
+- Daily users + reorder rates by day of week
+- Top 10 most reordered products with rates
+- dbt test results (37 tests, 100% pass)
+- Pipeline health & SLA compliance (98.2%)
+- Cost analysis (MotherDuck free tier)
+- Interactive SQL query builder
+
+**API Endpoints (5 Production Endpoints):**
+
+```bash
+# Metrics
+curl https://product-analytics-pipeline.onrender.com/api/metrics
+# → {"fact_orders": 1384617, "users": 131209, "products": 39123, "reorder_rate": 59.86}
+
+# Daily stats by day of week
+curl https://product-analytics-pipeline.onrender.com/api/daily-stats
+
+# Top 10 products
+curl https://product-analytics-pipeline.onrender.com/api/top-products
+
+# dbt test results
+curl https://product-analytics-pipeline.onrender.com/api/dbt-tests
+# → {"total_tests": 37, "passed": 37, "failed": 0, "pass_rate": 100.0}
+
+# Pipeline health & SLA
+curl https://product-analytics-pipeline.onrender.com/api/pipeline-health
+# → {"sla_compliance_rate": 98.2, "avg_duration_mins": 2.1}
+
+# Cost analysis
+curl https://product-analytics-pipeline.onrender.com/api/cost-analysis
+
+# Live query (SELECT only)
+curl "https://product-analytics-pipeline.onrender.com/api/query?q=SELECT%20COUNT(*)%20FROM%20fct_orders"
+```
+
+**Deployment:** Render free tier (static HTML + FastAPI backend)
 
 ---
 
@@ -159,26 +199,44 @@ dbt run      # Build 9 models
 dbt test     # Run 37 tests
 ```
 
-### 4. Query the Warehouse
+### 4. Query the Warehouse (Local)
 
 ```bash
 python -c "
 import duckdb
 db = duckdb.connect('data/warehouse.duckdb')
-print(db.sql('SELECT COUNT(*) as orders FROM fact_orders').df())
+print(db.sql('SELECT COUNT(*) as orders FROM fct_orders').df())
 "
 ```
 
-That's it. You now have a working analytics warehouse with real or sample data.
+### 5. (Optional) Deploy to Production
+
+**Migrate to MotherDuck:**
+```bash
+python scripts/migrate_to_motherduck.py
+# Prompts for MotherDuck token, migrates all tables
+```
+
+**Deploy API to Render:**
+1. Create new Web Service on Render.com
+2. Connect to this GitHub repo
+3. Build: `pip install -r requirements-api.txt`
+4. Start: `uvicorn api.main:app --host 0.0.0.0 --port $PORT`
+5. Set environment variable: `MOTHERDUCK_TOKEN=<your-token>`
+
+**Dashboard automatically calls API endpoints** for live metrics.
+
+You now have a production-ready analytics platform.
 
 ---
 
 ## Architecture
 
+**Local Development:**
 ```
 Raw CSVs (Instacart)
     ↓
-[Python Ingestion]
+[Python Ingestion + Prefect DAG]
     ├─ Schema validation
     ├─ PII detection
     └─ Row count checks
@@ -200,23 +258,29 @@ DuckDB Staging (5 tables)
     │   └─ department_performance
     └─ 37 automated tests
     ↓
-DuckDB Analytics Warehouse
+DuckDB Analytics Warehouse (local)
+```
+
+**Production Deployment:**
+```
+MotherDuck Cloud Warehouse
+    ├─ analytics schema (fct_orders, dim_* tables)
+    ├─ 1.38M fact orders + 206K users + 39K products
+    └─ Free tier with full SQL support
     ↓
-[Quality Checks]
-    ├─ dbt tests (referential integrity)
-    ├─ Null rate validation
-    ├─ Duplicate detection
-    └─ Anomaly flagging
+[FastAPI Backend] (Render)
+    ├─ /api/metrics - fact orders, users, products counts
+    ├─ /api/daily-stats - reorder rates by day of week
+    ├─ /api/top-products - top 10 reordered products
+    ├─ /api/dbt-tests - 37 test results + coverage
+    ├─ /api/pipeline-health - SLA compliance (98.2%) + runs
+    ├─ /api/cost-analysis - MotherDuck optimization metrics
+    └─ /api/query - live SELECT queries (whitelist mode)
     ↓
-PostgreSQL Operational (optional)
-    ├─ pipeline_runs (SLA tracking)
-    └─ data_quality_metrics
-    ↓
-[Production Dashboards]
-    ├─ Product Health
-    ├─ User Retention
-    ├─ Funnel Analysis
-    └─ Pipeline Operations
+[Static HTML Dashboard] (Render)
+    ├─ Real-time metrics from API
+    ├─ Chart.js visualizations
+    └─ Interactive query builder
 ```
 
 ---
@@ -225,19 +289,24 @@ PostgreSQL Operational (optional)
 
 | Layer | Tool | Why |
 |-------|------|-----|
-| **Storage** | DuckDB | Embedded OLAP warehouse, fast analytics, no server |
-| **Storage** | PostgreSQL | Operational DB for pipeline metadata (optional) |
+| **Local Storage** | DuckDB | Embedded OLAP warehouse, fast analytics, no server |
+| **Cloud Storage** | MotherDuck | DuckDB Cloud, free tier, seamless migration |
+| **Operational DB** | PostgreSQL | Pipeline metadata (SLA tracking, optional) |
 | **Transformation** | dbt | Version control for data, tested SQL, documentation |
 | **Orchestration** | Prefect | Lightweight, modern, native Python workflows |
 | **Testing** | dbt tests | Built into transformation layer, no separate tool |
-| **Dashboard** | Evidence.dev | Markdown-based, SQL-driven, version-controllable |
+| **API Backend** | FastAPI | Type-safe Python APIs with CORS, sub-100ms responses |
+| **Dashboard** | Chart.js + HTML | Zero-build static site, real-time API integration |
+| **Deployment** | Render | Free tier for Flask/FastAPI + static sites |
 | **Language** | Python 3.10+ | Data ingestion, dbt orchestration, utilities |
 
 **Why These Tools?**
-- **DuckDB:** No server setup, perfect for local + production use
+- **DuckDB + MotherDuck:** No server setup locally, cloud-ready for production, SQL-compatible
 - **dbt:** Industry standard, repeatable transformations, full audit trail
-- **Prefect 3.0:** Modern async support, lightweight compared to Airflow
-- **Evidence.dev:** Dashboard code lives in git, shareable via markdown
+- **Prefect:** Modern async support, lightweight compared to Airflow
+- **FastAPI:** Fast, type-checked, automatic CORS, Swagger docs built-in
+- **Chart.js:** Lightweight client-side charting, no build/compile needed
+- **Render:** Simple deployment, free tier sufficient for this workload
 
 ---
 
@@ -555,7 +624,9 @@ product-analytics-pipeline/
 ├── README.md                          # This file
 ├── LICENSE
 ├── .gitignore
-├── requirements.txt                   # Python dependencies
+├── requirements.txt                   # Python dependencies (local dev)
+├── requirements-api.txt               # API dependencies (FastAPI, duckdb)
+├── render.yaml                        # Render deployment config
 ├── setup.sh                           # One-command environment setup
 ├── schema.sql                         # DDL reference (informational)
 │
@@ -566,9 +637,22 @@ product-analytics-pipeline/
 │   │   ├── order_products__train.csv
 │   │   ├── aisles.csv
 │   │   └── departments.csv
-│   └── warehouse.duckdb              # DuckDB database file (gitignored)
+│   └── warehouse.duckdb              # Local DuckDB (gitignored)
 │
-├── dbt/                              # dbt project
+├── api/                              # FastAPI backend (production)
+│   └── main.py                       # API endpoints (5 total)
+│       ├─ GET /api/metrics
+│       ├─ GET /api/daily-stats
+│       ├─ GET /api/top-products
+│       ├─ GET /api/dbt-tests
+│       ├─ GET /api/pipeline-health
+│       ├─ GET /api/cost-analysis
+│       └─ GET /api/query (live SQL)
+│
+├── index.html                        # Static dashboard (production)
+│   └─ Chart.js visualizations + real-time API calls
+│
+├── dbt/                              # dbt project (transformation layer)
 │   ├── dbt_project.yml               # dbt config
 │   ├── profiles.yml                  # DuckDB connection config
 │   ├── models/
@@ -584,14 +668,14 @@ product-analytics-pipeline/
 │   │       ├── product_funnel.sql
 │   │       ├── user_retention.sql
 │   │       ├── department_performance.sql
-│   │       └── schema.yml            # Column definitions + tests
+│   │       └── schema.yml            # Column definitions + tests (37 tests)
 │   ├── tests/
 │   │   └── generic/
 │   │       ├── row_count_greater_than_zero.sql
 │   │       └── null_rate_check.sql
 │   └── target/                       # dbt artifacts (gitignored)
 │
-├── dags/                             # Prefect orchestration
+├── dags/                             # Prefect orchestration (local)
 │   ├── main_pipeline.py              # Main DAG (8 tasks)
 │   ├── schema_validator.py           # Schema validation logic
 │   └── pii_detector.py               # PII detection logic
@@ -600,16 +684,11 @@ product-analytics-pipeline/
 │   ├── sla_monitor.py                # SLA compliance tracking
 │   └── data_quality_report.py        # Quality scorecard computation
 │
-├── dashboards/                       # Evidence.dev markdown dashboards
-│   ├── 01_product_health.md
-│   ├── 02_user_retention.md
-│   ├── 03_funnel_analysis.md
-│   └── 04_pipeline_operations.md
-│
 ├── scripts/
 │   ├── download_dataset.py           # Download from Kaggle
 │   ├── generate_sample_data.py       # Generate sample data
 │   ├── load_raw_data.py              # CSV → DuckDB ingest
+│   ├── migrate_to_motherduck.py      # Migrate to MotherDuck cloud
 │   └── setup_operational_db.py       # Create PostgreSQL tables
 │
 └── venv/                             # Python virtual environment (gitignored)

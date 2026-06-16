@@ -144,9 +144,6 @@ def index():
         </div>
 
         <script>
-            // Embedded dashboard data
-            const dashboardData = """ + json.dumps(dashboard_data) + """;
-
             let usersChart, reorderChart, allMetrics;
             const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
